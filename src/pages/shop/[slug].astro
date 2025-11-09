@@ -5,7 +5,7 @@ import GothicFrame from "../../components/GothicFrame.astro";
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import type { GetStaticPaths } from "astro";
-import placeholderImage from "../../public/images/placeholder.webp";
+// Using URL for public assets
 
 // Generate static paths for all products
 export const getStaticPaths = (async () => {
@@ -45,7 +45,7 @@ const isAvailable = productData.status === "Available";
               <div class="product-images">
                 <div class="main-image">
                   {productData.images.length > 0 ? (
-                    <img
+                    <Image
                       src={`/images/${productData.images[0]}`}
                       alt={productData.product_name}
                       width={600}
@@ -55,7 +55,7 @@ const isAvailable = productData.status === "Available";
                       transition:name={`product-image-${product.slug}`}
                     />
                   ) : (
-                    <img
+                    <Image
                       src="/images/placeholder.webp"
                       alt={`${productData.product_name} - Image Not Available`}
                       width={600}
@@ -75,7 +75,7 @@ const isAvailable = productData.status === "Available";
                           data-image={`/images/${image}`}
                           data-index={index + 1}
                         >
-                          <img
+                          <Image
                             src={`/images/${image}`}
                             alt={`${productData.product_name} view ${index + 1}`}
                             width={80}
@@ -554,12 +554,12 @@ const isAvailable = productData.status === "Available";
   }
 </style>
 
-<script>
+</script><script>
   // Re-run on every page load (including View Transitions navigation)
   function initializeGallery() {
     // Image gallery functionality
     const thumbnails = document.querySelectorAll(".thumbnail");
-    const heroImage = document.querySelector(".hero-image");
+    const heroImage = document.querySelector(".hero-image") as HTMLImageElement;
 
     thumbnails.forEach((thumbnail) => {
       thumbnail.addEventListener("click", () => {
@@ -579,13 +579,13 @@ const isAvailable = productData.status === "Available";
     const closeBtn = document.querySelector(".contact-popup__close");
 
     if (openBtn && popup && overlay && closeBtn) {
-      const openPopup = (e) => {
+      const openPopup = (e: Event) => {
         e.preventDefault();
         popup.classList.add("active");
         document.body.style.overflow = "hidden";
       };
 
-      const closePopup = (e) => {
+      const closePopup = (e?: Event) => {
         if (e) e.preventDefault();
         popup.classList.remove("active");
         document.body.style.overflow = "";
@@ -600,7 +600,7 @@ const isAvailable = productData.status === "Available";
       overlay.addEventListener("click", () => closePopup());
 
       // Close on Escape key
-      const handleEscape = (e) => {
+      const handleEscape = (e: KeyboardEvent) => {
         if (e.key === "Escape" && popup.classList.contains("active")) {
           closePopup();
         }

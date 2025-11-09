@@ -199,7 +199,7 @@ export async function getStatusCounts(): Promise<Record<string, number>> {
 
 // Utility function to generate product URLs
 export function getProductUrl(product: Product): string {
-  return `/products/${product.slug}`;
+  return `/shop/${product.slug}`;
 }
 
 export function getProductImageUrl(product: Product, imageIndex: number = 0): string {

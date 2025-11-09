@@ -18,7 +18,8 @@
       "Bash(tasklist:*)",
       "Bash(cat:*)",
       "Bash(xargs:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(G:/astro-cube-boilerplate/src/pages/shop/[slug].astro)"
     ],
     "deny": [],
     "ask": []
