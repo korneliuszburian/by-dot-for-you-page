@@ -6,55 +6,18 @@
  */
 
  :root {
-  /* Layout Variables */
   --gutter: var(--space-s-l);
   --flow-space: var(--space-m);
 
-  /* Typography Variables */
   --font-primary: 'Cinzel', serif;
   --font-secondary: 'Kode Mono', monospace;
-  --leading-standard: 1.5;
-  /* Text Size Variables - Based on design tokens */
-  --size-step-000: 0.75rem;   /* 12px */
-  --size-step-00: 0.9375rem;   /* 15px */
-  --size-step-0: 1.125rem;     /* 18px - base */
-  --size-step-1: 1.35rem;      /* 21.6px */
-  --size-step-2: 1.625rem;     /* 26px */
-  --size-step-3: 1.95rem;      /* 31.2px */
-  --size-step-4: 2.44rem;      /* 39px */
-  --size-step-5: 2.8rem;       /* 44.8px */
 
-  /* Transition Variables */
+  --leading-standard: 1.5;
   --transition-base: 250ms ease;
   --transition-movement: 200ms linear;
   --transition-fade: 300ms ease;
   --transition-bounce: 500ms cubic-bezier(0.5, 0.05, 0.2, 1.5);
 
-  /* Layout Max Widths */
   --wrapper-max-width: 1566px;
   --wrapper-max-width-narrow: 1110px;
-
-  /* REQUIRED: Complete Gothic Color System */
-  --color-base-charcoal: #1A1A1A;
-  --color-base-granite: #222222;
-  --color-highlight-brass: #CD7F32;
-  --color-highlight-bone: #F5F5DC;
-  --color-accent-fire: #FF9900;
-  --color-accent-blood: #990000;
-  --color-text-ember: #FFA500;
-  --color-shadow-deep: #0A0A0A;
-  --color-light: #FFFFFF;
-  --color-dark: #1A1A1A;
-
-  /* Extended Gothic Color Palette */
-  --color-metal-bronze: #CD7F32;
-  --color-metal-bronze-patina: #8B6914;
-  --color-metal-silver: #C0C0C0;
-  --color-metal-gold: #FFD700;
-
-  /* Status Colors */
-  --color-success: #228B22;
-  --color-warning: #FF9900;
-  --color-error: #990000;
-  --color-info: #4169E1;
 }
