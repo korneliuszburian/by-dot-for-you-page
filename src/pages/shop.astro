@@ -1,24 +1,34 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Image } from "astro:assets";
 import GothicButton from "../components/GothicButton.astro";
-import { products, getCategoryCounts } from "../data/products";
+import { getCollection } from "astro:content";
 
-// Get all products and category counts
-const allProducts = products;
-const categoryCounts = getCategoryCounts();
+// Get all products from Content Collections
+const allProducts = await getCollection('products');
 
-// Get unique categories from products
-const categories = Array.from(new Set(products.map((p) => p.category)));
+// Calculate category and collection counts
+const categoryCounts: Record<string, number> = allProducts.reduce((acc: Record<string, number>, product) => {
+  const category = product.data.type;
+  acc[category] = (acc[category] || 0) + 1;
+  return acc;
+}, {});
+
+const collectionCounts: Record<string, number> = allProducts.reduce((acc: Record<string, number>, product) => {
+  const collection = product.data.collection;
+  acc[collection] = (acc[collection] || 0) + 1;
+  return acc;
+}, {});
+
+// Get unique categories
+const categories = [...new Set(allProducts.map((p) => p.data.type))];
 
 // SEO metadata
 const title = "Dot For You - Handmade Clothing Collection";
-const description =
-  "Discover unique handmade clothing by Dawid Olek. Each piece crafted with care in Poland.";
+const description = "Handmade pants and clothing from Poland. Available in various sizes and collections.";
 ---
 
 <Layout title={title} description={description} backgroundVideoFilter="brightness(0.7)">
-  <div class="shop-container">
+  <div class="shop-container" transition:animate="fade">
     <!-- Hero Section -->
     <section class="shop-hero">
       <section class="filters-section">
@@ -42,7 +52,7 @@ const description =
                   data-filter="available"
                 >
                   Dostępne ({
-                    allProducts.filter((p) => p.status === "available").length
+                    allProducts.filter((p) => p.data.status === "Available").length
                   })
                 </GothicButton>
                 <GothicButton
@@ -52,7 +62,7 @@ const description =
                   data-filter="unavailable"
                 >
                   Niedostępne ({
-                    allProducts.filter((p) => p.status === "disabled").length
+                    allProducts.filter((p) => p.data.status === "Unavailable").length
                   })
                 </GothicButton>
               </div>
@@ -92,52 +102,65 @@ const description =
             </div>
           </div>
           <section class="products-section">
-            <div class="products-grid">
+            <div class="shop__products-grid grid" transition:animate="fade" data-grid-min-item-size="20rem">
               {
                 allProducts.map((product, index) => {
-                  const totalStock = product.variants.reduce(
-                    (sum, v) => sum + v.inventory,
-                    0
-                  );
-                  const isAvailable =
-                    product.status === "available" && totalStock > 0;
-                  
+                  const isAvailable = product.data.status === "Available";
+
                   // Eagerly load first 6 products (above the fold), lazy load the rest
                   const loadingStrategy = index < 6 ? "eager" : "lazy";
 
+                  // Get first image for the product
+                  const hasImage = product.data.images.length > 0;
+
                   return (
                     <article
-                      class="product-card"
-                      data-status={product.status}
-                      data-category={product.category}
+                      class="shop_.shop__product-card"
+                      data-status={product.data.status}
+                      data-category={product.data.type}
+                      data-collection={product.data.collection}
                       data-available={isAvailable ? "true" : "false"}
                     >
                       <a
                         href={`/products/${product.slug}`}
                         class="product-link flow"
                       >
-                        <div class="product-image-container">
-                          <Image
-                            src={product.images.hero}
-                            alt={product.name}
-                            class="product-image"
-                            loading={loadingStrategy}
-                            width={600}
-                            height={600}
-                            transition:name={`product-${product.id}`}
-                          />
+                        <div class="shop__product-image-container">
+                          {hasImage ? (
+                            <img
+                              src={`/images/${product.data.images[0]}`}
+                              alt={product.data.product_name}
+                              width={400}
+                              height={400}
+                              loading={loadingStrategy}
+                              class="shop__product-image" transition:name={`product-image-${product.slug}`}
+                            />
+                          ) : (
+                            <img
+                              src="/images/placeholder.webp"
+                              alt="Image Not Available"
+                              width={400}
+                              height={400}
+                              loading="lazy"
+                              class="shop__product-image" transition:name={`product-image-${product.slug}`}
+                            />
+                          )}
                           {!isAvailable && (
-                            <div class="product-overlay">
-                              <span class="overlay-text">NIEDOSTĘPNE</span>
+                            <div class="shop__product-overlay">
+                              <span class="shop__overlay-text">NIEDOSTĘPNE</span>
                             </div>
                           )}
                         </div>
-                        <div class="product-info">
-                          <h3 class="product-name">{product.name}</h3>
-                          <div class="product-meta">
-                            <span class="product-price">
-                              {product.price} ZŁ
+                        <div class="shop__product-info">
+                          <h3 class="shop__product-name">{product.data.product_name}</h3>
+                          <div class="shop__product-meta">
+                            {/* <span class="shop__product-collection">{product.data.collection}</span> */}
+                            <span class="shop__product-price">
+                              {product.data.price_pln} ZŁ
                             </span>
+                          </div>
+                          <div class="shop__product-details">
+                            <span class="shop__product-size">Rozmiar: {product.data.size_eu}</span>
                           </div>
                         </div>
                       </a>
@@ -222,31 +245,23 @@ const description =
     opacity: 1;
   }
 
-  .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: var(--space-m);
-  }
 
   @media (max-width: 640px) {
-    .products-grid {
-      grid-template-columns: 1fr;
-    }
   }
 
   /* Product Card */
-  .product-card {
+  .shop__product-card {
     position: relative;
     transition:
       transform 0.3s,
       box-shadow 0.3s;
   }
 
-  .product-card.hidden {
+  .shop__product-card.hidden {
     display: none;
   }
 
-  .product-card:hover {
+  .shop__product-card:hover {
     transform: translateY(-4px);
   }
 
@@ -284,6 +299,12 @@ const description =
     flex-direction: column;
     gap: 6px;
     align-items: center;
+    text-align: center;
+  }
+
+  .product-meta {
+    display: flex;
+    flex-direction: column;
   }
 
   .product-name {
@@ -318,7 +339,7 @@ const description =
 
     // Get all product cards
     const productCards = document.querySelectorAll(
-      ".product-card"
+      ".shop__product-card"
     ) as NodeListOf<HTMLElement>;
     const noResultsMessage = document.querySelector(
       ".no-results"

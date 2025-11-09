@@ -12,7 +12,7 @@ const { title, description = "BY DOT FOR YOU ", backgroundVideoFilter } = Astro.
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" transition:name="root" transition:animate="fade">
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
@@ -31,7 +31,7 @@ const { title, description = "BY DOT FOR YOU ", backgroundVideoFilter } = Astro.
     <ClientRouter />
   </head>
   <body>
-    <video class="background__video" autoplay muted loop playsinline>
+    <video class="background__video" autoplay muted loop playsinline transition:persist>
       <source src="/assets/videos/testing-video-02.mp4" type="video/mp4" />
       Your browser does not support the video tag.
     </video>
@@ -48,5 +48,6 @@ const { title, description = "BY DOT FOR YOU ", backgroundVideoFilter } = Astro.
         filter: var(--backgroundVideoFilter, none);
       }
     </style>
+n  <style is:global>    @keyframes product-zoom-out {      from {        opacity: 1;        transform: scale(1);      }      to {        opacity: 0;        transform: scale(0.8);      }    }    @keyframes product-zoom-in {      from {        opacity: 0;        transform: scale(1.2);      }      to {        opacity: 1;        transform: scale(1);      }    }    [data-astro-transition="back"] .hero-image {      animation: product-zoom-out 0.2s ease-out forwards;    }    [data-astro-transition="forward"] .hero-image {      animation: product-zoom-in 0.2s ease-out forwards;    }  </style>
   </body>
 </html>

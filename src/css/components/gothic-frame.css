@@ -4,27 +4,27 @@
   border-image-source: var(--frame-asset);
   background-image: var(--background-asset);
   background-size: cover;
-  
+
   /* Gothic atmosphere */
   box-shadow: var(--shadow-deep), var(--shadow-inset-glow);
   position: relative;
 
   padding: 13px;
-  
+
   /* Hardware acceleration for smooth animations */
   transform: translateZ(0);
   will-change: transform, box-shadow;
   backface-visibility: hidden;
-  
+
   /* Transition with Gothic weight */
-  transition: 
+  transition:
     box-shadow var(--transition-gothic),
     transform var(--transition-stone);
 }
 
 [data-gothic-frame]:hover {
-  box-shadow: 
-    var(--shadow-deep), 
+  box-shadow:
+    var(--shadow-deep),
     var(--shadow-inset-glow),
     var(--shadow-ember);
 }
@@ -47,7 +47,7 @@
 }
 
 /* Content padding to account for border */
-[data-gothic-frame] > :global(*) {
+[data-gothic-frame]> :global(*) {
   padding: calc(var(--border-width) * 0.5);
 }
 
@@ -80,23 +80,9 @@
   border-image-repeat: stretch stretch;
 }
 
-[data-gothic-frame][data-variant="heavy"] {
-  border-image-slice: 45 45 45 45 fill;
-  border-image-width: 25px 25px 25px 25px;
-  border-image-outset: 2px 2px 2px 2px;
-  border-image-repeat: stretch stretch;
-}
-
-[data-gothic-frame][data-variant="carved"] {
-  border-image-slice: 35 35 35 35 fill;
-  border-image-width: 18px 18px 18px 18px;
-  border-image-outset: 1px 1px 1px 1px;
-  border-image-repeat: stretch stretch;
-}
-
-[data-gothic-frame][data-variant="runic"] {
-  border-image-slice: 40 40 40 40 fill;
-  border-image-width: 22px 22px 22px 22px;
-  border-image-outset: 1px 1px 1px 1px;
-  border-image-repeat: stretch stretch;
+[data-gothic-frame][data-variant="old"] {
+  border-image-slice: 86 327 96 327;
+  border-image-width: 20px 60px 20px 60px;
+  border-image-outset: 5px 40px 5px 40px;
+  border-image-repeat: repeat stretch;
 }

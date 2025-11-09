@@ -130,6 +130,7 @@ const Tag = href ? 'a' : 'button';
     margin-right: 8px;
   }
 
+/* Mobile-specific button text sizing */  @media (max-width: 640px) {    .blz-button {      font-size: 14px;      padding: 0 48px;      min-height: 48px;    }    .blz-button--small {      font-size: 12px;      padding: 0 40px;      min-height: 42px;    }    .blz-button--large {      font-size: 16px;      padding: 0 56px;      min-height: 54px;    }  }
   @media (min-width: 720px) {
     .blz-button .blz-icon {
       width: 24px;

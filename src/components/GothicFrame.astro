@@ -7,7 +7,7 @@
 import '../css/components/gothic-frame.css';
 
 export interface Props {
-  variant?: 'ornate' | 'simple' | 'heavy' | 'carved' | 'runic';
+  variant?: 'ornate' | 'simple' | 'heavy' | 'carved' | 'old';
   size?: 'thin' | 'medium' | 'thick' | 'heavy';
   class?: string;
   background?: 'stone' | 'parchment' | 'burned' | 'none';
@@ -24,8 +24,8 @@ const frameAssets = {
   ornate: 'frame-01.png',
   simple: 'frame-02.png',
   heavy: 'frame-03.png',
-  carved: 'frame-04.png',
-  runic: 'frame-05.png',
+  carved: 'frame-05.png',
+  old: 'frame-04.png',
 };
 
 const frameAsset = frameAssets[variant];

@@ -2,11 +2,14 @@
 import Layout from "../../layouts/Layout.astro";
 import GothicButton from "../../components/GothicButton.astro";
 import GothicFrame from "../../components/GothicFrame.astro";
-import { products, getProductBySlug } from "../../data/products";
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
 import type { GetStaticPaths } from "astro";
+import placeholderImage from "../../public/images/placeholder.webp";
 
 // Generate static paths for all products
 export const getStaticPaths = (async () => {
+  const products = await getCollection('products');
   return products.map((product) => ({
     params: { slug: product.slug },
     props: { product },
@@ -21,184 +24,195 @@ if (!product) {
   return Astro.redirect("/shop");
 }
 
-// Calculate total stock
-const totalStock = product.variants.reduce((sum, v) => sum + v.inventory, 0);
-const isAvailable = product.status === "available" && totalStock > 0;
-const availableVariants = product.variants.filter(
-  (v) => v.available && v.inventory > 0
-);
+// Product data from content collection
+const productData = product.data;
+const isAvailable = productData.status === "Available";
 ---
 
 <Layout
-  title={product.seo.title}
-  description={product.seo.description}
+  title={`${productData.product_name} - Dot For You`}
+  description={`Handmade ${productData.product_name} by Dawid Olek. ${productData.fabric}. ${productData.website_des}`}
   backgroundVideoFilter="brightness(0.5)"
 >
   <div class="product-page">
     <div class="product-page__background"></div>
     <div class="flow flow-space-xl">
-      <section class="product-hero">
-        <div class="product-images">
-          <div class="main-image">
-            <img
-              src={product.images.hero}
-              alt={product.name}
-              class="hero-image"
-              transition:name={`product-${product.id}`}
-            />
-          </div>
-
-          {
-            product.images.gallery.length > 0 && (
-              <div class="gallery-thumbnails">
-                {product.images.gallery.map((image, index) => (
-                  <button class="thumbnail" data-image={image}>
+      <GothicFrame variant="old" size="thick" background="none" class="product__frame">
+        <section class="product-hero">
+          <div class="product-hero__layout">
+            <!-- Left side: Product Images -->
+            <div class="product-hero__images">
+              <div class="product-images">
+                <div class="main-image">
+                  {productData.images.length > 0 ? (
                     <img
-                      src={image}
-                      alt={`${product.name} view ${index + 1}`}
+                      src={`/images/${productData.images[0]}`}
+                      alt={productData.product_name}
+                      width={600}
+                      height={600}
+                      loading="eager"
+                      class="hero-image"
+                      transition:name={`product-image-${product.slug}`}
                     />
-                  </button>
-                ))}
-              </div>
-            )
-          }
-        </div>
-
-        <div class="product-info">
-          <h1 class="product-title">{product.name}</h1>
-
-          <p class="product-description">{product.description}</p>
-
-          <div class="product-price">
-            <span class="price">{product.price} ZŁ</span>
-            <span class="edition">1 of 1</span>
-          </div>
-
-          {
-            availableVariants.length > 0 && (
-              <div class="size-selection">
-                <span class="label">Size</span>
-                <div class="size-options">
-                  <span class="size-display">
-                    {availableVariants[0].attributes.size ||
-                      availableVariants[0].name}
-                  </span>
+                  ) : (
+                    <img
+                      src="/images/placeholder.webp"
+                      alt={`${productData.product_name} - Image Not Available`}
+                      width={600}
+                      height={600}
+                      loading="lazy"
+                      class="hero-image"
+                    />
+                  )}
                 </div>
+
+                {
+                  productData.images.length > 1 && (
+                    <div class="gallery-thumbnails">
+                      {productData.images.slice(1).map((image, index) => (
+                        <button
+                          class="thumbnail"
+                          data-image={`/images/${image}`}
+                          data-index={index + 1}
+                        >
+                          <img
+                            src={`/images/${image}`}
+                            alt={`${productData.product_name} view ${index + 1}`}
+                            width={80}
+                            height={80}
+                            loading="lazy"
+                            class="thumbnail-image"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )
+                }
               </div>
-            )
-          }
+            </div>
 
-          <div class="product-actions">
-            {
-              isAvailable ? (
-                <GothicButton
-                  variant="button4"
-                  size="medium"
-                  class="contact-btn"
-                  data-open-popup="true"
-                >
-                  Skontaktuj się
-                </GothicButton>
-              ) : (
-                <GothicButton
-                  variant="button4"
-                  size="medium"
-                  class="sold-out-btn"
-                  disabled
-                >
-                  Sold Out
-                </GothicButton>
-              )
-            }
-          </div>
+            <!-- Right side: Product Info -->
+            <div class="product-hero__info">
+              <div class="product-info flow flow-space-m">
+                <h1 class="product-title">{productData.product_name}</h1>
 
-          <div class="product-footer">
-            <p class="made-by">By Dot For You</p>
-            <a href="/shop" class="back-link">← Back</a>
-          </div>
-        </div>
+                <p class="product-description">{productData.website_des}</p>
 
-        {
-          (product.images.details.length > 0 ||
-            product.images.lifestyle.length > 0) && (
-            <section class="additional-images">
-              <div class="images-grid">
-                {product.images.details.map((image) => (
-                  <img src={image} alt={product.name} />
-                ))}
-                {product.images.lifestyle.map((image) => (
-                  <img src={image} alt={product.name} />
-                ))}
-              </div>
-            </section>
-          )
-        }
+                <div class="product-meta">
+                  <span class="product-collection">{productData.collection}</span>
+                  <span class="product-fabric">{productData.fabric}</span>
+                  <span class="product-size">Rozmiar: {productData.size_eu}</span>
+                </div>
 
-        <!-- Contact Popup -->
-        <div class="contact-popup" id="contact-popup">
-          <div class="contact-popup__overlay" id="popup-overlay"></div>
-          <div class="contact-popup__container">
-            <GothicFrame
-              variant="ornate"
-              size="thick"
-              background="none"
-              class="contact-popup__frame"
-            >
-              <div class="contact-popup__content">
-                <video
-                  class="contact-popup__video"
-                  autoplay
-                  loop
-                  muted
-                  playsinline
-                  poster="/assets/videos/testing-video-poster-02.png"
-                >
-                  <source
-                    src="/assets/videos/testing-video-02.mp4"
-                    type="video/mp4"
-                  />
-                </video>
+                <div class="product-price">
+                  <span class="price">{productData.price_pln} ZŁ</span>
+                  <span class="edition">1 of 1</span>
+                </div>
 
-                <div class="contact-popup__inner">
-                  <h2 class="contact-popup__title">DM ME</h2>
-                  <p class="contact-popup__subtitle">
-                    {product.name} - {product.price} ZŁ
-                  </p>
-
-                  <div class="contact-popup__options">
-                    <GothicButton
-                      variant="button4"
-                      size="medium"
-                      href="mailto:kontakt@dotforyou.pl?subject=Zainteresowanie: {product.name}"
-                      class="contact-popup__option"
-                    >
-                      Email
-                    </GothicButton>
-
-                    <GothicButton
-                      variant="button4"
-                      size="medium"
-                      href="https://instagram.com/dotforyou"
-                      class="contact-popup__option contact-popup__instagram"
-                    >
-                      Instagram
-                    </GothicButton>
-
-                    <GothicButton
-                      variant="button4"
-                      size="medium"
-                      class="contact-popup__close"
-                      data-close-popup="true"
-                    >
-                      Zamknij
-                    </GothicButton>
+                <div class="size-selection">
+                  <span class="label">Size</span>
+                  <div class="size-options">
+                    <span class="size-display">{productData.size_eu}</span>
                   </div>
                 </div>
+
+                <div class="product-actions">
+                  {
+                    isAvailable ? (
+                      <GothicButton
+                        variant="button4"
+                        size="medium"
+                        class="contact-btn"
+                        data-open-popup="true"
+                      >
+                        Skontaktuj się
+                      </GothicButton>
+                    ) : (
+                      <GothicButton
+                        variant="button4"
+                        size="medium"
+                        class="sold-out-btn"
+                        disabled
+                      >
+                        Sold Out
+                      </GothicButton>
+                    )
+                  }
+                </div>
+
+                <div class="product-footer">
+                  <p class="made-by">By Dawid Olek - Dot For You</p>
+                  <a href="/shop" class="back-link">← Back</a>
+                </div>
               </div>
-            </GothicFrame>
+            </div>
           </div>
+        </section>
+      </GothicFrame>
+
+      <div class="contact-popup" id="contact-popup">
+        <div class="contact-popup__overlay" id="popup-overlay"></div>
+        <div class="contact-popup__container">
+          <GothicFrame
+            variant="ornate"
+            size="thick"
+            background="none"
+            class="contact-popup__frame"
+          >
+            <div class="contact-popup__content">
+              <video
+                class="contact-popup__video"
+                autoplay
+                loop
+                muted
+                playsinline
+                poster="/assets/videos/testing-video-poster-02.png"
+              >
+                <source
+                  src="/assets/videos/testing-video-02.mp4"
+                  type="video/mp4"
+                />
+              </video>
+
+              <div class="contact-popup__inner">
+                <h2 class="contact-popup__title">DM ME</h2>
+                <p class="contact-popup__subtitle">
+                  {productData.product_name} - {productData.price_pln} ZŁ
+                </p>
+
+                <div class="contact-popup__options">
+                  <GothicButton
+                    variant="button4"
+                    size="medium"
+                    href={`mailto:kontakt@dotforyou.pl?subject=Zainteresowanie: ${productData.product_name}`}
+                    class="contact-popup__option"
+                  >
+                    Email
+                  </GothicButton>
+
+                  <GothicButton
+                    variant="button4"
+                    size="medium"
+                    href="https://instagram.com/dotforyou"
+                    class="contact-popup__option contact-popup__instagram"
+                  >
+                    Instagram
+                  </GothicButton>
+
+                  <GothicButton
+                    variant="button4"
+                    size="medium"
+                    class="contact-popup__close"
+                    data-close-popup="true"
+                  >
+                    Zamknij
+                  </GothicButton>
+                </div>
+              </div>
+            </div>
+          </GothicFrame>
         </div>
-      </section>
+      </div>
     </div>
   </div>
 </Layout>
@@ -217,56 +231,71 @@ const availableVariants = product.variants.filter(
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url("/assets/videos/testing-video-poster-02.png");
     background-size: cover;
     background-position: center;
     opacity: 0.3;
     z-index: 0;
   }
 
+  .product__frame {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
   .product-hero {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4rem;
-    padding: var(--space-m);
     position: relative;
     z-index: 1;
   }
 
+  .product-hero__layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+    align-items: start;
+  }
+
   @media (max-width: 968px) {
-    .product-hero {
+    .product-hero__layout {
       grid-template-columns: 1fr;
-      gap: 2rem;
+      gap: var(--space-l);
     }
+  }
+
+  .product-hero__images {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
   }
 
   .product-images {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--space-s);
   }
 
   .main-image {
     width: 100%;
     overflow: hidden;
+    border-radius: 8px;
   }
 
   .hero-image {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: cover;
+    aspect-ratio: 1;
   }
 
   .gallery-thumbnails {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 0.5rem;
+    gap: var(--space-2xs);
   }
 
   .thumbnail {
     aspect-ratio: 1;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 8px;
+    padding: var(--space-2xs);
     overflow: hidden;
     cursor: pointer;
     transition: border-color 0.3s;
@@ -283,10 +312,15 @@ const availableVariants = product.variants.filter(
     object-fit: cover;
   }
 
+  .product-hero__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-l);
+  }
+
   .product-info {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
   }
 
   .product-title {
@@ -294,7 +328,7 @@ const availableVariants = product.variants.filter(
     font-weight: 400;
     text-transform: uppercase;
     letter-spacing: 4px;
-    margin-bottom: 1rem;
+    line-height: 1.2;
   }
 
   .product-description {
@@ -303,11 +337,27 @@ const availableVariants = product.variants.filter(
     opacity: 0.9;
   }
 
+  .product-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin-bottom: var(--space-s);
+  }
+
+  .product-collection,
+  .product-fabric,
+  .product-size {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
   .product-price {
     display: flex;
     align-items: baseline;
-    gap: 1rem;
-    margin: 2rem 0;
+    gap: var(--space-m);
+    margin: var(--space-l) 0;
   }
 
   .price {
@@ -324,7 +374,7 @@ const availableVariants = product.variants.filter(
   }
 
   .size-selection {
-    margin: 1.5rem 0;
+    margin: var(--space-m) 0;
   }
 
   .label {
@@ -332,18 +382,18 @@ const availableVariants = product.variants.filter(
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--space-2xs);
     opacity: 0.7;
   }
 
   .size-options {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--space-2xs);
   }
 
   .size-display {
-    padding: 0.75rem 1.5rem;
+    padding: var(--space-s) var(--space-m);
     border: 1px solid rgba(255, 255, 255, 0.3);
     background: transparent;
     font-size: 0.9rem;
@@ -352,19 +402,8 @@ const availableVariants = product.variants.filter(
     display: inline-block;
   }
 
-  .size-option {
-    padding: 0.75rem 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: transparent;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
   .product-actions {
-    margin: 2rem 0;
+    margin: var(--space-l) 0;
   }
 
   .contact-btn,
@@ -374,6 +413,34 @@ const availableVariants = product.variants.filter(
 
   .sold-out-btn :global(.gothic-button__content) {
     opacity: 0.5;
+  }
+
+  .product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+  }
+
+  .made-by {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .back-link {
+    text-decoration: none;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    color: var(--color-base-charcoal);
+    transition: opacity 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .back-link:hover {
+    opacity: 1;
   }
 
   /* Contact Popup Styles */
@@ -433,7 +500,7 @@ const availableVariants = product.variants.filter(
 
   .contact-popup__content {
     position: relative;
-    padding: 2rem 1.5rem;
+    padding: var(--space-xl) var(--space-m);
   }
 
   .contact-popup__video {
@@ -457,7 +524,7 @@ const availableVariants = product.variants.filter(
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 3px;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 var(--space-2xs) 0;
     text-align: center;
     color: var(--color-highlight-bone);
     text-shadow: 2px 2px 0 var(--color-shadow-deep);
@@ -465,7 +532,7 @@ const availableVariants = product.variants.filter(
 
   .contact-popup__subtitle {
     font-size: 1rem;
-    margin: 0 0 2rem 0;
+    margin: 0 0 var(--space-l) 0;
     text-align: center;
     color: var(--color-metal-antique-gold);
     letter-spacing: 1px;
@@ -474,7 +541,7 @@ const availableVariants = product.variants.filter(
   .contact-popup__options {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--space-s);
   }
 
   .contact-popup__option,
@@ -485,52 +552,6 @@ const availableVariants = product.variants.filter(
   .contact-popup__instagram :global(a) {
     pointer-events: auto;
   }
-
-  .product-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .made-by {
-    font-size: 0.85rem;
-    opacity: 0.6;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-
-  .back-link {
-    text-decoration: none;
-    font-size: 0.9rem;
-    opacity: 0.7;
-    color: var(--color-base-charcoal);
-    transition: opacity 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .back-link:hover {
-    opacity: 1;
-  }
-
-  .additional-images {
-    position: relative;
-    z-index: 1;
-    grid-column: 3 / 5;
-  }
-
-  .images-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-  }
-
-  .images-grid img {
-    height: 100%;
-    width: 100%;
-    object-fit: contain;
-    height: 350px;
-  }
 </style>
 
 <script>
@@ -538,7 +559,7 @@ const availableVariants = product.variants.filter(
   function initializeGallery() {
     // Image gallery functionality
     const thumbnails = document.querySelectorAll(".thumbnail");
-    const heroImage = document.querySelector(".hero-image") as HTMLImageElement;
+    const heroImage = document.querySelector(".hero-image");
 
     thumbnails.forEach((thumbnail) => {
       thumbnail.addEventListener("click", () => {
@@ -558,13 +579,13 @@ const availableVariants = product.variants.filter(
     const closeBtn = document.querySelector(".contact-popup__close");
 
     if (openBtn && popup && overlay && closeBtn) {
-      const openPopup = (e: Event) => {
+      const openPopup = (e) => {
         e.preventDefault();
         popup.classList.add("active");
         document.body.style.overflow = "hidden";
       };
 
-      const closePopup = (e?: Event) => {
+      const closePopup = (e) => {
         if (e) e.preventDefault();
         popup.classList.remove("active");
         document.body.style.overflow = "";
@@ -579,7 +600,7 @@ const availableVariants = product.variants.filter(
       overlay.addEventListener("click", () => closePopup());
 
       // Close on Escape key
-      const handleEscape = (e: KeyboardEvent) => {
+      const handleEscape = (e) => {
         if (e.key === "Escape" && popup.classList.contains("active")) {
           closePopup();
         }
