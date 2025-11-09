@@ -1,0 +1,52 @@
+---
+import "../css/global.css";
+import { ClientRouter } from "astro:transitions";
+
+interface Props {
+  title: string;
+  description?: string;
+  backgroundVideoFilter?: string;
+}
+
+const { title, description = "BY DOT FOR YOU ", backgroundVideoFilter } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Gothic Sanctuary Meta -->
+    <meta name="theme-color" content="#1A1A1A" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+
+    <title>{title}</title>
+
+    <ClientRouter />
+  </head>
+  <body>
+    <video class="background__video" autoplay muted loop playsinline>
+      <source src="/assets/videos/testing-video-02.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+    <slot />
+    <style define:vars={{ backgroundVideoFilter }}>
+      .background__video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+        filter: var(--backgroundVideoFilter, none);
+      }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "title": "Gothic Sanctuary Colors",
+  "description": "Dark fantasy Gothic color palette for the Gothic Sanctuary e-commerce platform. These colors create the immersive medieval merchant sanctuary atmosphere.",
+  "items": [
+    {
+      "name": "Transparent",
+      "value": "transparent"
+    },
+    {
+      "name": "Base Charcoal",
+      "value": "#1A1A1A"
+    },
+    {
+      "name": "Base Granite",
+      "value": "#222222"
+    },
+    {
+      "name": "Highlight Brass",
+      "value": "#CD7F32"
+    },
+    {
+      "name": "Light",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "Highlight Bone",
+      "value": "#F5F5DC"
+    },
+    {
+      "name": "Highlight Rusted Gold",
+      "value": "#B8860B"
+    },
+    {
+      "name": "Accent Fire",
+      "value": "#FF9900"
+    },
+    {
+      "name": "Accent Blood",
+      "value": "#990000"
+    },
+    {
+      "name": "Text Ember",
+      "value": "#FFA500"
+    },
+    {
+      "name": "Shadow Deep",
+      "value": "#0A0A0A"
+    }
+  ]
+}

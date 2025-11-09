@@ -1,0 +1,405 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
+import GothicButton from "../components/GothicButton.astro";
+import { products, getCategoryCounts } from "../data/products";
+
+// Get all products and category counts
+const allProducts = products;
+const categoryCounts = getCategoryCounts();
+
+// Get unique categories from products
+const categories = Array.from(new Set(products.map((p) => p.category)));
+
+// SEO metadata
+const title = "Dot For You - Handmade Clothing Collection";
+const description =
+  "Discover unique handmade clothing by Dawid Olek. Each piece crafted with care in Poland.";
+---
+
+<Layout title={title} description={description} backgroundVideoFilter="brightness(0.7)">
+  <div class="shop-container">
+    <!-- Hero Section -->
+    <section class="shop-hero">
+      <section class="filters-section">
+        <div class="filters-container flow flow-space-l wrapper">
+          <div class="flow flow-space-xs">
+            <div class="filter-group">
+              <span class="filter-label">Dostępność:</span>
+              <div class="filter-buttons">
+                <GothicButton
+                  variant="button4"
+                  size="medium"
+                  class="filter-btn active"
+                  data-filter="all"
+                >
+                  Wszystkie ({allProducts.length})
+                </GothicButton>
+                <GothicButton
+                  variant="button4"
+                  size="medium"
+                  class="filter-btn"
+                  data-filter="available"
+                >
+                  Dostępne ({
+                    allProducts.filter((p) => p.status === "available").length
+                  })
+                </GothicButton>
+                <GothicButton
+                  variant="button4"
+                  size="medium"
+                  class="filter-btn"
+                  data-filter="unavailable"
+                >
+                  Niedostępne ({
+                    allProducts.filter((p) => p.status === "disabled").length
+                  })
+                </GothicButton>
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <span class="filter-label">Kategoria:</span>
+              <div class="filter-buttons">
+                <GothicButton
+                  variant="button4"
+                  size="medium"
+                  class="category-btn active"
+                  data-category="all"
+                >
+                  Wszystkie ({allProducts.length})
+                </GothicButton>
+                {
+                  categories.map((category) => (
+                    <GothicButton
+                      variant="button4"
+                      size="medium"
+                      class="category-btn"
+                      data-category={category}
+                    >
+                      {category === "pants"
+                        ? "Spodnie"
+                        : category === "hoodies"
+                          ? "Bluzy"
+                          : category === "accessories"
+                            ? "Akcesoria"
+                            : category}
+                      ({categoryCounts[category] || 0})
+                    </GothicButton>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+          <section class="products-section">
+            <div class="products-grid">
+              {
+                allProducts.map((product, index) => {
+                  const totalStock = product.variants.reduce(
+                    (sum, v) => sum + v.inventory,
+                    0
+                  );
+                  const isAvailable =
+                    product.status === "available" && totalStock > 0;
+                  
+                  // Eagerly load first 6 products (above the fold), lazy load the rest
+                  const loadingStrategy = index < 6 ? "eager" : "lazy";
+
+                  return (
+                    <article
+                      class="product-card"
+                      data-status={product.status}
+                      data-category={product.category}
+                      data-available={isAvailable ? "true" : "false"}
+                    >
+                      <a
+                        href={`/products/${product.slug}`}
+                        class="product-link flow"
+                      >
+                        <div class="product-image-container">
+                          <Image
+                            src={product.images.hero}
+                            alt={product.name}
+                            class="product-image"
+                            loading={loadingStrategy}
+                            width={600}
+                            height={600}
+                            transition:name={`product-${product.id}`}
+                          />
+                          {!isAvailable && (
+                            <div class="product-overlay">
+                              <span class="overlay-text">NIEDOSTĘPNE</span>
+                            </div>
+                          )}
+                        </div>
+                        <div class="product-info">
+                          <h3 class="product-name">{product.name}</h3>
+                          <div class="product-meta">
+                            <span class="product-price">
+                              {product.price} ZŁ
+                            </span>
+                          </div>
+                        </div>
+                      </a>
+                    </article>
+                  );
+                })
+              }
+            </div>
+
+            <div class="no-results" style="display: none;">
+              <p>Nie znaleziono produktów spełniających kryteria.</p>
+            </div>
+          </section>
+        </div>
+
+        <!-- Filters Section -->
+      </section>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  
+  .shop-hero {
+    position: relative;
+    min-height: 100vh;
+  }
+
+  .shop-container {
+    min-height: 100vh;
+    color: var(--color-highlight-bone);
+  }
+
+  .products-section {
+    z-index: 999;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  }
+
+  .hero-title {
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+  }
+
+  .filters-section {
+    z-index: 10;
+    padding: var(--space-m);
+    position: relative;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-buttons,
+  .category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  /* Active state styling for Gothic buttons */
+  .filter-btn.active,
+  .category-btn.active {
+    opacity: 1;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-m);
+  }
+
+  @media (max-width: 640px) {
+    .products-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Product Card */
+  .product-card {
+    position: relative;
+    transition:
+      transform 0.3s,
+      box-shadow 0.3s;
+  }
+
+  .product-card.hidden {
+    display: none;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .product-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .product-image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  .product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .overlay-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .product-info {
+    --flow-space: var(--space-2xs);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .product-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .product-category {
+    font-size: 0.8rem;
+    color: var(--color-metal-bronze-patina);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .product-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+</style>
+
+<script>
+  function initializeShopFilters() {
+    console.log("Shop page loaded with filters");
+
+    // Get all product cards
+    const productCards = document.querySelectorAll(
+      ".product-card"
+    ) as NodeListOf<HTMLElement>;
+    const noResultsMessage = document.querySelector(
+      ".no-results"
+    ) as HTMLElement;
+
+    // Filter state
+    let currentAvailabilityFilter = "all";
+    let currentCategoryFilter = "all";
+
+    // Filter buttons
+    const filterBtns = document.querySelectorAll(
+      ".filter-btn"
+    ) as NodeListOf<HTMLButtonElement>;
+    const categoryBtns = document.querySelectorAll(
+      ".category-btn"
+    ) as NodeListOf<HTMLButtonElement>;
+
+    // Apply filters function
+    function applyFilters() {
+      let visibleCount = 0;
+
+      productCards.forEach((card) => {
+        const cardStatus = card.getAttribute("data-status");
+        const cardCategory = card.getAttribute("data-category");
+        const cardAvailable = card.getAttribute("data-available") === "true";
+
+        let showCard = true;
+
+        // Availability filter
+        if (currentAvailabilityFilter === "available" && !cardAvailable) {
+          showCard = false;
+        } else if (
+          currentAvailabilityFilter === "unavailable" &&
+          cardAvailable
+        ) {
+          showCard = false;
+        }
+
+        // Category filter
+        if (
+          currentCategoryFilter !== "all" &&
+          cardCategory !== currentCategoryFilter
+        ) {
+          showCard = false;
+        }
+
+        if (showCard) {
+          card.classList.remove("hidden");
+          visibleCount++;
+        } else {
+          card.classList.add("hidden");
+        }
+      });
+
+      if (noResultsMessage) {
+        noResultsMessage.style.display = visibleCount === 0 ? "block" : "none";
+      }
+    }
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        filterBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentAvailabilityFilter = btn.getAttribute("data-filter") || "all";
+        applyFilters();
+      });
+    });
+
+    categoryBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        categoryBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentCategoryFilter = btn.getAttribute("data-category") || "all";
+        applyFilters();
+      });
+    });
+
+    console.log("Filters initialized with", productCards.length, "products");
+  }
+
+  document.addEventListener("DOMContentLoaded", initializeShopFilters);
+
+  document.addEventListener("astro:page-load", initializeShopFilters);
+</script>
