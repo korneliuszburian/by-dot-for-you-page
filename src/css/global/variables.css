@@ -14,7 +14,7 @@
   --font-primary: 'Cinzel', serif;
   --font-secondary: 'Kode Mono', monospace;
   --leading-standard: 1.5;
-n  /* Text Size Variables - Based on design tokens */
+  /* Text Size Variables - Based on design tokens */
   --size-step-000: 0.75rem;   /* 12px */
   --size-step-00: 0.9375rem;   /* 15px */
   --size-step-0: 1.125rem;     /* 18px - base */

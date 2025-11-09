@@ -110,7 +110,7 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                   const hasImage = product.data.images.length > 0;
 
                   return (
-                    <article
+                    <article transition:animate="fade"
                       class="shop_.shop__product-card"
                       data-status={product.data.status}
                       data-category={product.data.type}
@@ -318,14 +318,14 @@ const description = "Handmade pants and clothing from Poland. Available in vario
   }
 
   .product-category {
-    font-size: 0.8rem;
+    font-size: var(--size-step-00);
     color: var(--color-metal-bronze-patina);
     text-transform: uppercase;
     letter-spacing: 1px;
   }
 
   .product-price {
-    font-size: 1.1rem;
+    font-size: var(--size-step-1);
     font-weight: bold;
   }
 </style>
@@ -354,7 +354,7 @@ const description = "Handmade pants and clothing from Poland. Available in vario
       ".category-btn"
     ) as NodeListOf<HTMLButtonElement>;
 
-    // Apply filters function
+    // Apply filters function with smooth transitions
     function applyFilters() {
       let visibleCount = 0;
 
@@ -383,41 +383,102 @@ const description = "Handmade pants and clothing from Poland. Available in vario
           showCard = false;
         }
 
+        // Apply smooth transitions
         if (showCard) {
+          card.style.opacity = "0";
+          card.style.transform = "scale(0.95)";
+
+          // Trigger reflow
+          card.offsetHeight;
+
+          card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+          card.style.opacity = "1";
+          card.style.transform = "scale(1)";
           card.classList.remove("hidden");
           visibleCount++;
         } else {
-          card.classList.add("hidden");
+          card.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+          card.style.opacity = "0";
+          card.style.transform = "scale(0.95)";
+
+          setTimeout(() => {
+            if (!showCard) {
+              card.classList.add("hidden");
+            }
+          }, 200);
         }
       });
 
+      // Show/hide no results message with transition
       if (noResultsMessage) {
-        noResultsMessage.style.display = visibleCount === 0 ? "block" : "none";
+        if (visibleCount === 0) {
+          noResultsMessage.style.opacity = "0";
+          noResultsMessage.style.display = "block";
+          // Trigger reflow
+          noResultsMessage.offsetHeight;
+          noResultsMessage.style.transition = "opacity 0.3s ease";
+          noResultsMessage.style.opacity = "1";
+        } else {
+          noResultsMessage.style.transition = "opacity 0.2s ease";
+          noResultsMessage.style.opacity = "0";
+          setTimeout(() => {
+            noResultsMessage.style.display = "none";
+          }, 200);
+        }
       }
     }
 
+    // Filter button click handlers with view transitions
     filterBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        filterBtns.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentAvailabilityFilter = btn.getAttribute("data-filter") || "all";
-        applyFilters();
+      btn.addEventListener("click", async () => {
+        // Start view transition if supported
+        if ('startViewTransition' in document) {
+          await (document as any).startViewTransition(() => {
+            filterBtns.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentAvailabilityFilter = btn.getAttribute("data-filter") || "all";
+            applyFilters();
+          }).ready;
+        } else {
+          // Fallback for browsers without view transitions
+          filterBtns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentAvailabilityFilter = btn.getAttribute("data-filter") || "all";
+          applyFilters();
+        }
       });
     });
 
     categoryBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        categoryBtns.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentCategoryFilter = btn.getAttribute("data-category") || "all";
-        applyFilters();
+      btn.addEventListener("click", async () => {
+        // Start view transition if supported
+        if ('startViewTransition' in document) {
+          await (document as any).startViewTransition(() => {
+            categoryBtns.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentCategoryFilter = btn.getAttribute("data-category") || "all";
+            applyFilters();
+          }).ready;
+        } else {
+          // Fallback for browsers without view transitions
+          categoryBtns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentCategoryFilter = btn.getAttribute("data-category") || "all";
+          applyFilters();
+        }
       });
+    });
+
+    // Initialize with proper visibility
+    productCards.forEach((card) => {
+      card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+      card.style.opacity = "1";
+      card.style.transform = "scale(1)";
     });
 
     console.log("Filters initialized with", productCards.length, "products");
   }
 
   document.addEventListener("DOMContentLoaded", initializeShopFilters);
-
   document.addEventListener("astro:page-load", initializeShopFilters);
 </script>

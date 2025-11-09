@@ -324,7 +324,7 @@ const isAvailable = productData.status === "Available";
   }
 
   .product-title {
-    font-size: clamp(2rem, 5vw, 3rem);
+    font-size: var(--size-step-3);
     font-weight: 400;
     text-transform: uppercase;
     letter-spacing: 4px;
@@ -332,7 +332,7 @@ const isAvailable = productData.status === "Available";
   }
 
   .product-description {
-    font-size: 1rem;
+    font-size: var(--size-step-0);
     line-height: 1.6;
     opacity: 0.9;
   }
@@ -347,7 +347,7 @@ const isAvailable = productData.status === "Available";
   .product-collection,
   .product-fabric,
   .product-size {
-    font-size: 0.9rem;
+    font-size: var(--size-step-00);
     opacity: 0.8;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -361,13 +361,13 @@ const isAvailable = productData.status === "Available";
   }
 
   .price {
-    font-size: 2.5rem;
+    font-size: var(--size-step-4);
     font-weight: 300;
     letter-spacing: 2px;
   }
 
   .edition {
-    font-size: 0.9rem;
+    font-size: var(--size-step-00);
     opacity: 0.6;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -396,7 +396,7 @@ const isAvailable = productData.status === "Available";
     padding: var(--space-s) var(--space-m);
     border: 1px solid rgba(255, 255, 255, 0.3);
     background: transparent;
-    font-size: 0.9rem;
+    font-size: var(--size-step-00);
     text-transform: uppercase;
     letter-spacing: 2px;
     display: inline-block;
@@ -431,7 +431,7 @@ const isAvailable = productData.status === "Available";
 
   .back-link {
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: var(--size-step-00);
     opacity: 0.7;
     color: var(--color-base-charcoal);
     transition: opacity 0.3s;
@@ -531,7 +531,7 @@ const isAvailable = productData.status === "Available";
   }
 
   .contact-popup__subtitle {
-    font-size: 1rem;
+    font-size: var(--size-step-0);
     margin: 0 0 var(--space-l) 0;
     text-align: center;
     color: var(--color-metal-antique-gold);
