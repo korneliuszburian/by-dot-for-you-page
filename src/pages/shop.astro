@@ -2,28 +2,50 @@
 import Layout from "../layouts/Layout.astro";
 import GothicButton from "../components/GothicButton.astro";
 import { Image } from "astro:assets";
-import { getCollection } from "astro:content";
+import productsData from "../../public/dataset/output.json";
 
-// Get all products from Content Collections
-const allProducts = await getCollection('products');
+// Map JSON data to expected format and generate slugs
+const allProducts = productsData.map((product) => ({
+  ...product,
+  slug: `${product.product_name.toLowerCase().replace(/\s+/g, "-")}-${product.id}`,
+  data: {
+    ...product,
+    // Correct image paths by stripping 'Items/' and '/Website/' segments if present to match disk
+    images: product.images.map((img) => {
+      if (img.startsWith("/")) return img;
+      const cleanPath = img.replace(/^Items\//, "").replace(/\/Website\//, "/");
+      return `/dataset/database/${cleanPath}`;
+    }),
+  },
+}));
+
+// Placeholder path correction
+const placeholderPath = "/placeholder.webp";
 
 // Calculate category and collection counts
-const categoryCounts: Record<string, number> = allProducts.reduce((acc: Record<string, number>, product) => {
-  const category = product.data.type;
-  acc[category] = (acc[category] || 0) + 1;
-  return acc;
-}, {});
-
+const categoryCounts: Record<string, number> = allProducts.reduce(
+  (acc: Record<string, number>, product) => {
+    const category = product.data.type;
+    acc[category] = (acc[category] || 0) + 1;
+    return acc;
+  },
+  {},
+);
 
 // Get unique categories
 const categories = [...new Set(allProducts.map((p) => p.data.type))];
 
 // SEO metadata
 const title = "Dot For You - Handmade Clothing Collection";
-const description = "Handmade pants and clothing from Poland. Available in various sizes and collections.";
+const description =
+  "Handmade pants and clothing from Poland. Available in various sizes and collections.";
 ---
 
-<Layout title={title} description={description} backgroundVideoFilter="brightness(0.7)">
+<Layout
+  title={title}
+  description={description}
+  backgroundVideoFilter="brightness(0.7)"
+>
   <div class="shop-container" transition:animate="fade">
     <!-- Hero Section -->
     <section class="shop-hero">
@@ -39,7 +61,7 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                   class="filter-btn active"
                   data-filter="all"
                 >
-                  Wszystkie ({allProducts.length})
+                  All ({allProducts.length})
                 </GothicButton>
                 <GothicButton
                   variant="button4"
@@ -47,8 +69,9 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                   class="filter-btn"
                   data-filter="available"
                 >
-                  Dostępne ({
-                    allProducts.filter((p) => p.data.status === "Available").length
+                  Available ({
+                    allProducts.filter((p) => p.data.status === "Available")
+                      .length
                   })
                 </GothicButton>
                 <GothicButton
@@ -58,14 +81,15 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                   data-filter="unavailable"
                 >
                   Niedostępne ({
-                    allProducts.filter((p) => p.data.status === "Unavailable").length
+                    allProducts.filter((p) => p.data.status === "Unavailable")
+                      .length
                   })
                 </GothicButton>
               </div>
             </div>
 
             <div class="filter-group">
-              <span class="filter-label">Kategoria:</span>
+              <span class="filter-label">Category:</span>
               <div class="filter-buttons">
                 <GothicButton
                   variant="button4"
@@ -73,7 +97,7 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                   class="category-btn active"
                   data-category="all"
                 >
-                  Wszystkie ({allProducts.length})
+                  All ({allProducts.length})
                 </GothicButton>
                 {
                   categories.map((category) => (
@@ -83,14 +107,7 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                       class="category-btn"
                       data-category={category}
                     >
-                      {category === "pants"
-                        ? "Spodnie"
-                        : category === "hoodies"
-                          ? "Bluzy"
-                          : category === "accessories"
-                            ? "Akcesoria"
-                            : category}
-                      ({categoryCounts[category] || 0})
+                      {category} ({categoryCounts[category] || 0})
                     </GothicButton>
                   ))
                 }
@@ -110,8 +127,9 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                   const hasImage = product.data.images.length > 0;
 
                   return (
-                    <article transition:animate="fade"
-                      class="shop_.shop__product-card"
+                    <article
+                      transition:animate="fade"
+                      class="shop__product-card"
                       data-status={product.data.status}
                       data-category={product.data.type}
                       data-collection={product.data.collection}
@@ -124,21 +142,23 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                         <div class="shop__product-image-container">
                           {hasImage ? (
                             <Image
-                              src={`/images/${product.data.images[0]}`}
+                              src={product.data.images[0]}
                               alt={product.data.product_name}
                               width={400}
                               height={400}
                               loading={loadingStrategy}
-                              class="shop__product-image" transition:name={`product-image-${product.slug}`}
+                              class="shop__product-image"
+                              transition:name={`product-image-${product.slug}-${product.id}`}
                             />
                           ) : (
                             <Image
-                              src="/images/placeholder.webp"
+                              src={placeholderPath}
                               alt="Image Not Available"
                               width={400}
                               height={400}
                               loading="lazy"
-                              class="shop__product-image" transition:name={`product-image-${product.slug}`}
+                              class="shop__product-image"
+                              transition:name={`product-image-${product.slug}-${product.id}`}
                             />
                           )}
                           {!isAvailable && (
@@ -148,7 +168,9 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                           )}
                         </div>
                         <div class="shop__product-info">
-                          <h3 class="shop__product-name">{product.data.product_name}</h3>
+                          <h3 class="shop__product-name">
+                            {product.data.product_name}
+                          </h3>
                           <div class="shop__product-meta">
                             {/* <span class="shop__product-collection">{product.data.collection}</span> */}
                             <span class="shop__product-price">
@@ -156,7 +178,9 @@ const description = "Handmade pants and clothing from Poland. Available in vario
                             </span>
                           </div>
                           <div class="shop__product-details">
-                            <span class="shop__product-size">Rozmiar: {product.data.size_eu}</span>
+                            <span class="shop__product-size">
+                              Rozmiar: {product.data.size_eu}
+                            </span>
                           </div>
                         </div>
                       </a>
@@ -171,22 +195,21 @@ const description = "Handmade pants and clothing from Poland. Available in vario
             </div>
           </section>
         </div>
-
-        <!-- Filters Section -->
       </section>
     </section>
   </div>
 </Layout>
 
 <style>
-  
   .shop-hero {
     position: relative;
     min-height: 100vh;
   }
 
   .shop__product-image-container img {
-    height: 100%;
+    height: 300px;
+    width: auto;
+    object-fit: contain;
   }
 
   .shop-container {
@@ -239,26 +262,27 @@ const description = "Handmade pants and clothing from Poland. Available in vario
     justify-content: center;
   }
 
-  /* Active state styling for Gothic buttons */
   .filter-btn.active,
   .category-btn.active {
     opacity: 1;
   }
 
-
   @media (max-width: 640px) {
   }
 
-  /* Product Card */
   .shop__product-card {
     position: relative;
     transition:
-      transform 0.3s,
-      box-shadow 0.3s;
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      opacity 0.3s ease;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
   }
 
   .shop__products-grid {
-    --grid-min-item-size: 8rem;
+    --grid-min-item-size: 14rem;
+    --gutter: 24px;
   }
 
   .shop__product-card.hidden {
@@ -304,6 +328,10 @@ const description = "Handmade pants and clothing from Poland. Available in vario
     flex-direction: column;
   }
 
+  .shop__product-info {
+    --flow-space: var(--space-2xs);
+  }
+
   .product-name {
     font-size: var(--size-step-1);
     font-weight: bold;
@@ -336,10 +364,10 @@ const description = "Handmade pants and clothing from Poland. Available in vario
 
     // Get all product cards
     const productCards = document.querySelectorAll(
-      ".shop__product-card"
+      ".shop__product-card",
     ) as NodeListOf<HTMLElement>;
     const noResultsMessage = document.querySelector(
-      ".no-results"
+      ".no-results",
     ) as HTMLElement;
 
     // Filter state
@@ -348,10 +376,10 @@ const description = "Handmade pants and clothing from Poland. Available in vario
 
     // Filter buttons
     const filterBtns = document.querySelectorAll(
-      ".filter-btn"
+      ".filter-btn",
     ) as NodeListOf<HTMLButtonElement>;
     const categoryBtns = document.querySelectorAll(
-      ".category-btn"
+      ".category-btn",
     ) as NodeListOf<HTMLButtonElement>;
 
     // Apply filters function with smooth transitions
@@ -382,29 +410,21 @@ const description = "Handmade pants and clothing from Poland. Available in vario
           showCard = false;
         }
 
-        // Apply smooth transitions
+        // Apply visibility
         if (showCard) {
-          card.style.opacity = "0";
-          card.style.transform = "scale(0.95)";
-
-          // Trigger reflow
-          card.offsetHeight;
-
-          card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-          card.style.opacity = "1";
-          card.style.transform = "scale(1)";
           card.classList.remove("hidden");
+          // Only manual fade if VT is NOT supported/active
+          if (!("startViewTransition" in document)) {
+            card.style.opacity = "1";
+            card.style.transform = "scale(1)";
+          }
           visibleCount++;
         } else {
-          card.style.transition = "opacity 0.2s ease, transform 0.2s ease";
-          card.style.opacity = "0";
-          card.style.transform = "scale(0.95)";
-
-          setTimeout(() => {
-            if (!showCard) {
-              card.classList.add("hidden");
-            }
-          }, 200);
+          if (!("startViewTransition" in document)) {
+            card.style.opacity = "0";
+            card.style.transform = "scale(0.95)";
+          }
+          card.classList.add("hidden");
         }
       });
 
@@ -431,13 +451,23 @@ const description = "Handmade pants and clothing from Poland. Available in vario
     filterBtns.forEach((btn) => {
       btn.addEventListener("click", async () => {
         // Start view transition if supported
-        if ('startViewTransition' in document) {
-          await (document as any).startViewTransition(() => {
+        if ("startViewTransition" in document) {
+          try {
+            await (document as any).startViewTransition(() => {
+              filterBtns.forEach((b) => b.classList.remove("active"));
+              btn.classList.add("active");
+              currentAvailabilityFilter =
+                btn.getAttribute("data-filter") || "all";
+              applyFilters();
+            }).ready;
+          } catch (e) {
+            // If transition is aborted, still apply the filter logic
             filterBtns.forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
-            currentAvailabilityFilter = btn.getAttribute("data-filter") || "all";
+            currentAvailabilityFilter =
+              btn.getAttribute("data-filter") || "all";
             applyFilters();
-          }).ready;
+          }
         } else {
           // Fallback for browsers without view transitions
           filterBtns.forEach((b) => b.classList.remove("active"));
@@ -451,13 +481,22 @@ const description = "Handmade pants and clothing from Poland. Available in vario
     categoryBtns.forEach((btn) => {
       btn.addEventListener("click", async () => {
         // Start view transition if supported
-        if ('startViewTransition' in document) {
-          await (document as any).startViewTransition(() => {
+        if ("startViewTransition" in document) {
+          try {
+            await (document as any).startViewTransition(() => {
+              categoryBtns.forEach((b) => b.classList.remove("active"));
+              btn.classList.add("active");
+              currentCategoryFilter =
+                btn.getAttribute("data-category") || "all";
+              applyFilters();
+            }).ready;
+          } catch (e) {
+            // Fallback for aborted transition
             categoryBtns.forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
             currentCategoryFilter = btn.getAttribute("data-category") || "all";
             applyFilters();
-          }).ready;
+          }
         } else {
           // Fallback for browsers without view transitions
           categoryBtns.forEach((b) => b.classList.remove("active"));
@@ -468,12 +507,7 @@ const description = "Handmade pants and clothing from Poland. Available in vario
       });
     });
 
-    // Initialize with proper visibility
-    productCards.forEach((card) => {
-      card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-      card.style.opacity = "1";
-      card.style.transform = "scale(1)";
-    });
+    // Initial state setup is handled by CSS transitions
 
     console.log("Filters initialized with", productCards.length, "products");
   }
