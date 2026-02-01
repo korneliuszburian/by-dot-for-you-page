@@ -14,49 +14,36 @@ const menuItems = [
     title: "NOWA KOLEKCJA",
     route: "/",
     status: "disabled",
-    description: "Najnowsze zabronione szaty",
   },
   {
     title: "WCZYTAJ KOLEKCJE",
     route: "/collections",
     status: "active",
-    description: "Przywołaj starożytne zbiory",
   },
   {
     title: "SKLEP",
     route: "/shop",
     status: "active",
-    description: "Główne sanktuarium handlu",
   },
   {
     title: "PRZEDMIOTY",
     route: "/items",
     status: "active",
-    description: "Katalog świętych reliktów",
-  },
-  {
-    title: "SYSTEM PROJEKTOWY",
-    route: "/design-system",
-    status: "active",
-    description: "Kompletny system gotyckich elementów",
   },
   {
     title: "LOOKBOOK",
     route: "/lookbook",
     status: "active",
-    description: "Wizualna galeria mocy",
   },
   {
     title: "ZDJĘCIA",
     route: "/photos",
     status: "active",
-    description: "Sekcja fotograficzna",
   },
 ];
 
 // display the glass-like-logo-1.glb using three.js, it must interative with the background used inside of the main-menu__page-background, basically it must be a three.js scene with a background from the <source src="/assets/videos/testing-video-02.mp4" type="video/mp4" /> so the logo will be interactive with the background
 // and the background must be a video, so the logo will be interactive with the video background
-
 ---
 
 <div class="main-menu">
@@ -86,9 +73,7 @@ const menuItems = [
         </video>
 
         <div class="main-menu__content">
-
-          <h1 class="main-menu__title">
-          </h1>
+          <h1 class="main-menu__title"></h1>
 
           <nav
             class="main-menu__nav"
@@ -105,7 +90,6 @@ const menuItems = [
                       disabled={item.status === "disabled"}
                       href={item.status === "active" ? item.route : undefined}
                       class="main-menu__button"
-                      data-description={item.description}
                     >
                       {item.title}
                     </GothicButton>
@@ -118,7 +102,6 @@ const menuItems = [
       </div>
     </GothicFrame>
   </div>
-
 </div>
 
 <style>
@@ -221,7 +204,7 @@ const menuItems = [
   }
 
   .main-menu__nav {
-    margin: 2rem 0;
+    margin: 4rem;
   }
 
   .main-menu__list {
@@ -243,25 +226,6 @@ const menuItems = [
     max-width: 400px;
     position: relative;
     transition: all var(--transition-gothic);
-  }
-
-  .main-menu__button::after {
-    content: attr(data-description);
-    position: absolute;
-    bottom: -2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--color-base-granite);
-    color: var(--color-highlight-bone);
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--transition-ember);
-    z-index: 10;
-    box-shadow: var(--shadow-deep);
   }
 
   .main-menu__button:hover::after {
@@ -367,7 +331,7 @@ const menuItems = [
 <script>
   const mainMenuFrame = document.getElementById("main-menu-frame"); // This targets the content-wrapper
   const video = document.getElementById(
-    "main-menu-video"
+    "main-menu-video",
   ) as HTMLVideoElement | null;
 
   let videoPlayPromise: Promise<void> | null = null;
@@ -399,7 +363,7 @@ const menuItems = [
                 }
               }
             },
-            { once: true }
+            { once: true },
           );
         }
       }

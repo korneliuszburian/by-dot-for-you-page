@@ -1,23 +1,33 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import GothicButton from "../components/GothicButton.astro";
+import Logo3D from "../components/Logo3D.astro";
 import { Image } from "astro:assets";
 import productsData from "../../public/dataset/output.json";
 
 // Map JSON data to expected format and generate slugs
-const allProducts = productsData.map((product) => ({
-  ...product,
-  slug: `${product.product_name.toLowerCase().replace(/\s+/g, "-")}-${product.id}`,
-  data: {
+const uniqueIds = new Set();
+const allProducts = productsData
+  .filter((product) => {
+    if (uniqueIds.has(product.id)) return false;
+    uniqueIds.add(product.id);
+    return true;
+  })
+  .map((product) => ({
     ...product,
-    // Correct image paths by stripping 'Items/' and '/Website/' segments if present to match disk
-    images: product.images.map((img) => {
-      if (img.startsWith("/")) return img;
-      const cleanPath = img.replace(/^Items\//, "").replace(/\/Website\//, "/");
-      return `/dataset/database/${cleanPath}`;
-    }),
-  },
-}));
+    slug: `${product.product_name.toLowerCase().replace(/\s+/g, "-")}-${product.id}`,
+    data: {
+      ...product,
+      // Correct image paths by stripping 'Items/' and '/Website/' segments if present to match disk
+      images: product.images.map((img) => {
+        if (img.startsWith("/")) return img;
+        const cleanPath = img
+          .replace(/^Items\//, "")
+          .replace(/\/Website\//, "/");
+        return `/dataset/database/${cleanPath}`;
+      }),
+    },
+  }));
 
 // Placeholder path correction
 const placeholderPath = "/placeholder.webp";
@@ -49,6 +59,13 @@ const description =
   <div class="shop-container" transition:animate="fade">
     <!-- Hero Section -->
     <section class="shop-hero">
+      <div class="hero-content flow text-center pt-8 pb-4">
+        <a href="/" class="inline-block">
+          <Logo3D size="small" class="pointer-events-none" />
+          <span class="sr-only">Wróć na stronę główną</span>
+        </a>
+      </div>
+
       <section class="filters-section">
         <div class="filters-container flow flow-space-l wrapper">
           <div class="flow flow-space-xs">
@@ -56,7 +73,7 @@ const description =
               <span class="filter-label">Dostępność:</span>
               <div class="filter-buttons">
                 <GothicButton
-                  variant="button4"
+                  variant="button5"
                   size="medium"
                   class="filter-btn active"
                   data-filter="all"
@@ -64,7 +81,7 @@ const description =
                   All ({allProducts.length})
                 </GothicButton>
                 <GothicButton
-                  variant="button4"
+                  variant="button5"
                   size="medium"
                   class="filter-btn"
                   data-filter="available"
@@ -75,7 +92,7 @@ const description =
                   })
                 </GothicButton>
                 <GothicButton
-                  variant="button4"
+                  variant="button5"
                   size="medium"
                   class="filter-btn"
                   data-filter="unavailable"
@@ -92,7 +109,7 @@ const description =
               <span class="filter-label">Category:</span>
               <div class="filter-buttons">
                 <GothicButton
-                  variant="button4"
+                  variant="button5"
                   size="medium"
                   class="category-btn active"
                   data-category="all"
@@ -102,7 +119,7 @@ const description =
                 {
                   categories.map((category) => (
                     <GothicButton
-                      variant="button4"
+                      variant="button5"
                       size="medium"
                       class="category-btn"
                       data-category={category}
@@ -129,6 +146,7 @@ const description =
                   return (
                     <article
                       transition:animate="fade"
+                      transition:name={`product-card-${product.slug}`}
                       class="shop__product-card"
                       data-status={product.data.status}
                       data-category={product.data.type}
@@ -139,7 +157,11 @@ const description =
                         href={`/shop/${product.slug}`}
                         class="product-link flow"
                       >
-                        <div class="shop__product-image-container">
+                        <div class="shop__product-image-container relative">
+                          <div class="image-loader absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                            <div class="w-8 h-8 border-2 border-stone-600 border-t-stone-300 rounded-full animate-spin" />
+                          </div>
+
                           {hasImage ? (
                             <Image
                               src={product.data.images[0]}
@@ -147,8 +169,9 @@ const description =
                               width={400}
                               height={400}
                               loading={loadingStrategy}
-                              class="shop__product-image"
-                              transition:name={`product-image-${product.slug}-${product.id}`}
+                              class="shop__product-image relative z-10 transition-opacity duration-300 opacity-0"
+                              transition:name={`product-image-${product.slug}`}
+                              onload="this.classList.remove('opacity-0'); this.parentElement.querySelector('.image-loader').style.display='none';"
                             />
                           ) : (
                             <Image
@@ -157,10 +180,12 @@ const description =
                               width={400}
                               height={400}
                               loading="lazy"
-                              class="shop__product-image"
-                              transition:name={`product-image-${product.slug}-${product.id}`}
+                              class="shop__product-image relative z-10 transition-opacity duration-300 opacity-0"
+                              transition:name={`product-image-${product.slug}`}
+                              onload="this.classList.remove('opacity-0'); this.parentElement.querySelector('.image-loader').style.display='none';"
                             />
                           )}
+
                           {!isAvailable && (
                             <div class="shop__product-overlay">
                               {/* <span class="shop__overlay-text">NIEDOSTĘPNE</span> */}
@@ -210,6 +235,13 @@ const description =
     height: 300px;
     width: auto;
     object-fit: contain;
+  }
+
+  /* Container styles */
+  .shop__product-image-container {
+    min-height: 300px; /* Reserve space */
+    border-radius: 4px;
+    background: transparent; /* Explicitly transparent */
   }
 
   .shop-container {
@@ -273,11 +305,8 @@ const description =
   .shop__product-card {
     position: relative;
     transition:
-      transform 0.3s ease,
-      box-shadow 0.3s ease,
-      opacity 0.3s ease;
-    will-change: transform, opacity;
-    backface-visibility: hidden;
+      transform 0.3s,
+      box-shadow 0.3s;
   }
 
   .shop__products-grid {
@@ -383,6 +412,7 @@ const description =
     ) as NodeListOf<HTMLButtonElement>;
 
     // Apply filters function with smooth transitions
+    // Apply filters function
     function applyFilters() {
       let visibleCount = 0;
 
@@ -410,39 +440,23 @@ const description =
           showCard = false;
         }
 
-        // Apply visibility
         if (showCard) {
           card.classList.remove("hidden");
-          // Only manual fade if VT is NOT supported/active
-          if (!("startViewTransition" in document)) {
-            card.style.opacity = "1";
-            card.style.transform = "scale(1)";
-          }
+          // Remove manual inline styles that might interfere
+          card.style.display = "";
           visibleCount++;
         } else {
-          if (!("startViewTransition" in document)) {
-            card.style.opacity = "0";
-            card.style.transform = "scale(0.95)";
-          }
           card.classList.add("hidden");
+          card.style.display = "none";
         }
       });
 
-      // Show/hide no results message with transition
+      // Show/hide no results message
       if (noResultsMessage) {
         if (visibleCount === 0) {
-          noResultsMessage.style.opacity = "0";
           noResultsMessage.style.display = "block";
-          // Trigger reflow
-          noResultsMessage.offsetHeight;
-          noResultsMessage.style.transition = "opacity 0.3s ease";
-          noResultsMessage.style.opacity = "1";
         } else {
-          noResultsMessage.style.transition = "opacity 0.2s ease";
-          noResultsMessage.style.opacity = "0";
-          setTimeout(() => {
-            noResultsMessage.style.display = "none";
-          }, 200);
+          noResultsMessage.style.display = "none";
         }
       }
     }
@@ -450,64 +464,73 @@ const description =
     // Filter button click handlers with view transitions
     filterBtns.forEach((btn) => {
       btn.addEventListener("click", async () => {
+        if (isTransitioning) return;
+
+        // Update State
+        filterBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentAvailabilityFilter = btn.getAttribute("data-filter") || "all";
+
         // Start view transition if supported
         if ("startViewTransition" in document) {
+          isTransitioning = true;
           try {
             await (document as any).startViewTransition(() => {
-              filterBtns.forEach((b) => b.classList.remove("active"));
-              btn.classList.add("active");
-              currentAvailabilityFilter =
-                btn.getAttribute("data-filter") || "all";
               applyFilters();
             }).ready;
           } catch (e) {
-            // If transition is aborted, still apply the filter logic
-            filterBtns.forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-            currentAvailabilityFilter =
-              btn.getAttribute("data-filter") || "all";
+            console.log("Transition skipped", e);
             applyFilters();
+          } finally {
+            isTransitioning = false;
           }
         } else {
-          // Fallback for browsers without view transitions
-          filterBtns.forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
-          currentAvailabilityFilter = btn.getAttribute("data-filter") || "all";
           applyFilters();
         }
       });
     });
+
+    // Debounce to prevent rapid clicks aborting transitions
+    let isTransitioning = false;
 
     categoryBtns.forEach((btn) => {
       btn.addEventListener("click", async () => {
+        if (isTransitioning) return;
+
+        // Logic to update state
+        categoryBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentCategoryFilter = btn.getAttribute("data-category") || "all";
+
         // Start view transition if supported
         if ("startViewTransition" in document) {
+          isTransitioning = true;
           try {
             await (document as any).startViewTransition(() => {
-              categoryBtns.forEach((b) => b.classList.remove("active"));
-              btn.classList.add("active");
-              currentCategoryFilter =
-                btn.getAttribute("data-category") || "all";
               applyFilters();
             }).ready;
           } catch (e) {
-            // Fallback for aborted transition
-            categoryBtns.forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-            currentCategoryFilter = btn.getAttribute("data-category") || "all";
+            // If transition aborted, ensure filters are applied
+            // applyFilters() is called inside the callback, but if the browser
+            // drops the transition, we might want to ensure the DOM state is final.
+            // With applyFilters it's DOM manipulation, so checks are needed.
+            console.log("Transition skipped or aborted", e);
             applyFilters();
+          } finally {
+            isTransitioning = false;
           }
         } else {
-          // Fallback for browsers without view transitions
-          categoryBtns.forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
-          currentCategoryFilter = btn.getAttribute("data-category") || "all";
           applyFilters();
         }
       });
     });
 
-    // Initial state setup is handled by CSS transitions
+    // Initialize with proper visibility
+    productCards.forEach((card) => {
+      card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+      card.style.opacity = "1";
+      card.style.transform = "scale(1)";
+    });
 
     console.log("Filters initialized with", productCards.length, "products");
   }

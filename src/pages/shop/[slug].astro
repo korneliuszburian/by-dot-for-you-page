@@ -71,15 +71,21 @@ const features = Array.isArray(productData.website_des)
           <div class="item-showcase">
             {
               productData.images.length > 0 ? (
-                <Image
-                  src={productData.images[0]}
-                  alt={productData.product_name}
-                  width={500}
-                  height={500}
-                  loading="eager"
-                  class="item-image"
-                  transition:name={`product-image-${product.slug}-${product.id}`}
-                />
+                <div class="relative w-full h-full flex items-center justify-center">
+                  <div class="image-loader absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                    <div class="w-8 h-8 border-2 border-stone-600 border-t-stone-300 rounded-full animate-spin" />
+                  </div>
+                  <Image
+                    src={productData.images[0]}
+                    alt={productData.product_name}
+                    width={500}
+                    height={500}
+                    loading="eager"
+                    class="item-image relative z-10 transition-opacity duration-500 opacity-0"
+                    transition:name={`product-image-${product.slug}`}
+                    onload="this.classList.remove('opacity-0'); this.parentElement.querySelector('.image-loader').style.display='none';"
+                  />
+                </div>
               ) : (
                 <Image
                   src="/placeholder.webp"
@@ -322,6 +328,8 @@ const features = Array.isArray(productData.website_des)
     align-items: center;
     justify-content: center;
     padding: var(--space-m);
+    background: transparent;
+    z-index: 0;
   }
 
   .item-image {
@@ -331,6 +339,8 @@ const features = Array.isArray(productData.website_des)
     height: auto;
     object-fit: contain;
     border-radius: 4px;
+    position: relative;
+    z-index: 1; /* Above skeleton */
   }
 
   /* Gallery thumbnails strip */
@@ -574,10 +584,6 @@ const features = Array.isArray(productData.website_des)
 
     .item-frame {
       min-height: 200px;
-    }
-
-    .stats-content {
-      padding: var(--space-s);
     }
   }
 

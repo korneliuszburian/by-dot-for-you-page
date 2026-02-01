@@ -1,55 +1,77 @@
 ---
 /**
- * Logo 3D Component - Interactive Three.js 3D Logo with Dithering Shader
- * Displays the logo-3d.glb model with post-processing dithering effect
- * Based on: https://github.com/niccolofanton/dithering-shader
+ * Gothic Artifact - "SOUL BURN" Edition
+ * Idle: Cold, Dark Iron, High Pixelation
+ * Hover: Burning Gold, Sharper Image, Faster Spin
  */
 
 interface Props {
   class?: string;
+  size?: "small" | "medium" | "large" | "full";
 }
 
-const { class: className = '' } = Astro.props;
+const { class: className = "", size = "medium" } = Astro.props;
+
+const sizeClasses = {
+  small: "w-32 h-32",
+  medium: "w-full h-[300px]", // Original default
+  large: "w-full h-[500px]",
+  full: "w-full h-full",
+};
+
+const currentSizeClass = sizeClasses[size] || sizeClasses.medium;
 ---
 
-<div class={`logo-3d ${className}`} id="logo-3d-container">
-  <canvas id="logo-3d-canvas"></canvas>
+<div
+  id="gothic-artifact-container"
+  class={`relative mx-auto overflow-hidden cursor-pointer group ${currentSizeClass} ${className}`}
+>
+  <canvas
+    id="artifact-canvas"
+    class="block w-full h-full outline-none transition-transform duration-700 ease-out group-hover:scale-105"
+  ></canvas>
+
+  <div
+    id="artifact-loader"
+    class="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+  >
+    <span
+      class="text-xs tracking-[0.2em] text-[#444] font-serif uppercase animate-pulse"
+    >
+      Summoning...
+    </span>
+  </div>
 </div>
 
-<style>
-  .logo-3d {
-    width: 100%;
-    height: 200px;
-    position: relative;
-    margin-inline: auto;
-    cursor: pointer;
-  }
-
-  #logo-3d-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-</style>
-
 <script>
-  import * as THREE from 'three';
-  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-  import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-  import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-  import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+  import * as THREE from "three";
+  import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+  import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+  import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+  import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 
-  // Dithering Shader - based on https://www.shadertoy.com/view/ltSSzW
+  // KONFIGURACJA ZACHOWANIA
+  const CONFIG = {
+    // Pixelation
+    pixelIdle: 4.0, // Mocne ziarno (PS1 style)
+    pixelHover: 1.5, // Wyostrzenie (żeby zobaczyć detale)
+
+    // Rotation
+    rotSpeedIdle: 0.3,
+    rotSpeedHover: 0.8, // Szybszy obrót przy aktywacji
+
+    // Glow / Emissive
+    glowColor: 0xff6600, // Ogień/Magma
+    glowIntensityIdle: 0.0,
+    glowIntensityHover: 1.5,
+  };
+
   const DitheringShader = {
     uniforms: {
-      'tDiffuse': { value: null },
-      'resolution': { value: new THREE.Vector2() },
-      'gridSize': { value: 4.0 },
-      'pixelSizeRatio': { value: 1.0 },
-      'grayscaleOnly': { value: 1.0 },
-      'invertColor': { value: 0.0 }
+      tDiffuse: { value: null },
+      resolution: { value: new THREE.Vector2() },
+      pixelSize: { value: 1.0 },
     },
-
     vertexShader: `
       varying vec2 vUv;
       void main() {
@@ -57,294 +79,224 @@ const { class: className = '' } = Astro.props;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
-
     fragmentShader: `
       uniform sampler2D tDiffuse;
       uniform vec2 resolution;
-      uniform float gridSize;
-      uniform float pixelSizeRatio;
-      uniform float grayscaleOnly;
-      uniform float invertColor;
-      
+      uniform float pixelSize;
       varying vec2 vUv;
 
-      bool getValue(float brightness, vec2 pos) {
-        if (brightness > 16.0 / 17.0) return false;
-        if (brightness < 1.0 / 17.0) return true;
-        
-        vec2 pixel = floor(mod(pos.xy / gridSize, 4.0));
-        int x = int(pixel.x);
-        int y = int(pixel.y);
-        
-        if (x == 0) {
-          if (y == 0) return brightness < 16.0 / 17.0;
-          if (y == 1) return brightness < 5.0 / 17.0;
-          if (y == 2) return brightness < 13.0 / 17.0;
-          return brightness < 1.0 / 17.0;
-        } 
-        else if (x == 1) {
-          if (y == 0) return brightness < 8.0 / 17.0;
-          if (y == 1) return brightness < 12.0 / 17.0;
-          if (y == 2) return brightness < 4.0 / 17.0;
-          return brightness < 9.0 / 17.0;
+      float dither4x4(vec2 position, float brightness) {
+        int x = int(mod(position.x, 4.0));
+        int y = int(mod(position.y, 4.0));
+        int index = x + y * 4;
+        float limit = 0.0;
+        if (x < 8) {
+          if (index == 0) limit = 0.0625; if (index == 1) limit = 0.5625;
+          if (index == 2) limit = 0.1875; if (index == 3) limit = 0.6875;
+          if (index == 4) limit = 0.8125; if (index == 5) limit = 0.3125;
+          if (index == 6) limit = 0.9375; if (index == 7) limit = 0.4375;
+          if (index == 8) limit = 0.25;   if (index == 9) limit = 0.75;
+          if (index == 10) limit = 0.125; if (index == 11) limit = 0.625;
+          if (index == 12) limit = 1.0;   if (index == 13) limit = 0.5;
+          if (index == 14) limit = 0.875; if (index == 15) limit = 0.375;
         }
-        else if (x == 2) {
-          if (y == 0) return brightness < 14.0 / 17.0;
-          if (y == 1) return brightness < 2.0 / 17.0;
-          if (y == 2) return brightness < 15.0 / 17.0;
-          return brightness < 3.0 / 17.0;
-        }
-        else {
-          if (y == 0) return brightness < 6.0 / 17.0;
-          if (y == 1) return brightness < 10.0 / 17.0;
-          if (y == 2) return brightness < 7.0 / 17.0;
-          return brightness < 11.0 / 17.0;
-        }
+        return brightness < limit ? 0.0 : 1.0;
       }
 
       void main() {
-        vec2 fragCoord = vUv * resolution;
-        
-        float pixelSize = gridSize * pixelSizeRatio;
-        vec2 pixelatedUV = floor(fragCoord / pixelSize) * pixelSize / resolution;
-        vec4 texColor = texture2D(tDiffuse, pixelatedUV);
-        vec3 baseColor = texColor.rgb;
-        float alpha = texColor.a;
-        
-        // If alpha is 0, keep it transparent
-        if (alpha < 0.01) {
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-          return;
-        }
-        
-        float luminance = dot(baseColor, vec3(1.0, 1.0, 1.0));
-        
-        if (grayscaleOnly > 0.0) {
-          baseColor = vec3(luminance);
-        }
-            
-        bool dithered = getValue(luminance, fragCoord);
-        vec3 ditherColor = dithered ? vec3(0.0) : baseColor;
-        
-        vec2 currentPixel = floor(fragCoord / pixelSize);
-        vec2 originalPixel = floor(vUv * resolution / pixelSize);
-        
-        baseColor = (currentPixel == originalPixel) ? ditherColor : baseColor;
+        vec2 dxy = pixelSize / resolution;
+        vec2 coord = dxy * floor(vUv / dxy);
+        vec4 texel = texture2D(tDiffuse, coord);
+        if (texel.a < 0.1) discard;
 
-        if (invertColor > 0.0) {
-          baseColor = 1.0 - baseColor;
+        // Podbijamy jasność dla efektu glow
+        vec3 color = texel.rgb;
+        float lum = dot(color, vec3(0.299, 0.587, 0.114));
+        
+        vec2 screenPos = gl_FragCoord.xy / (pixelSize * 0.7);
+        float dither = dither4x4(screenPos, lum);
+        
+        // Cień wciąż ciemny, ale światła (glow) przebijają dither
+        vec3 shadowColor = vec3(0.02, 0.02, 0.03); 
+        
+        // Jeśli kolor jest bardzo jasny (glow), ignorujemy dither (efekt ognia)
+        float glowFactor = max(color.r, max(color.g, color.b));
+        vec3 finalColor = mix(shadowColor, color, dither);
+        
+        if (glowFactor > 0.6) {
+           finalColor = color; // Glow przebija dither
         }
 
-        // Keep original alpha
-        gl_FragColor = vec4(baseColor, alpha);
+        gl_FragColor = vec4(finalColor, texel.a);
       }
-    `
+    `,
   };
 
-  function initLogo3D() {
-    const container = document.getElementById('logo-3d-container');
-    const canvas = document.getElementById('logo-3d-canvas') as HTMLCanvasElement;
-    
+  function initArtifact() {
+    const container = document.getElementById("gothic-artifact-container");
+    const canvas = document.getElementById(
+      "artifact-canvas",
+    ) as HTMLCanvasElement;
+    const loaderEl = document.getElementById("artifact-loader");
     if (!container || !canvas) return;
 
-    // Scene setup
+    // --- STATE ---
+    let isHovered = false;
+    let currentPixelSize = CONFIG.pixelIdle;
+    let currentRotSpeed = CONFIG.rotSpeedIdle;
+    let currentGlow = CONFIG.glowIntensityIdle;
+
     const scene = new THREE.Scene();
-    
-    // Camera setup
     const camera = new THREE.PerspectiveCamera(
-      45,
+      35,
       container.clientWidth / container.clientHeight,
       0.1,
-      1000
+      100,
     );
-    camera.position.set(0, 0, 5);
+    camera.position.set(0, 0, 7);
 
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ 
+    const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
-      antialias: true
+      powerPreference: "high-performance",
     });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000, 0); // Transparent background
+    renderer.setPixelRatio(1);
 
-    // Post-processing setup
     const composer = new EffectComposer(renderer);
-    const renderPass = new RenderPass(scene, camera);
-    composer.addPass(renderPass);
-
-    const ditheringPass = new ShaderPass(DitheringShader);
-    ditheringPass.uniforms['resolution'].value.set(
-      container.clientWidth * window.devicePixelRatio,
-      container.clientHeight * window.devicePixelRatio
+    composer.addPass(new RenderPass(scene, camera));
+    const shaderPass = new ShaderPass(DitheringShader);
+    shaderPass.uniforms["resolution"].value.set(
+      container.clientWidth,
+      container.clientHeight,
     );
-    ditheringPass.uniforms['gridSize'].value = 3.5; // Increased for more dithering
-    ditheringPass.uniforms['pixelSizeRatio'].value = 1.2; // Increased for more pixelation
-    ditheringPass.uniforms['grayscaleOnly'].value = 0.0; // Keep colors
-    composer.addPass(ditheringPass);
+    shaderPass.uniforms["pixelSize"].value = CONFIG.pixelIdle;
+    composer.addPass(shaderPass);
 
-    // Hover effect - disable dithering on hover for crystal clear view
-    let isHovered = false;
-    let targetGridSize = 3.5;
-    let targetPixelSize = 1.2;
-    let currentGridSize = 3.5;
-    let currentPixelSize = 1.2;
-    let targetRotationY = 0;
-    let targetRotationX = 0;
-    let targetPositionY = 0;
-    
-    container.addEventListener('mouseenter', () => {
-      isHovered = true;
-      targetGridSize = 0.1;
-      targetPixelSize = 0.1;
-    });
-    
-    container.addEventListener('mouseleave', () => {
-      isHovered = false;
-      targetGridSize = 3.5;
-      targetPixelSize = 1.2;
-    });
-
-    // Lighting - enhanced for better dithering effect
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    // --- LIGHTS ---
+    const ambientLight = new THREE.AmbientLight(0x223344, 0.5);
     scene.add(ambientLight);
 
-    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 2.0);
-    directionalLight1.position.set(5, 5, 5);
-    scene.add(directionalLight1);
+    const moonLight = new THREE.DirectionalLight(0x6688ff, 2.0); // Zimne Rim Light
+    moonLight.position.set(-3, 5, -5);
+    scene.add(moonLight);
 
-    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.5);
-    directionalLight2.position.set(-5, -5, -5);
-    scene.add(directionalLight2);
+    // Dynamiczne światło od "rozgrzanego" metalu
+    const fireLight = new THREE.PointLight(CONFIG.glowColor, 0, 10);
+    fireLight.position.set(2, 2, 2);
+    scene.add(fireLight);
 
-    const pointLight = new THREE.PointLight(0xffffff, 2, 100);
-    pointLight.position.set(0, 5, 5);
-    scene.add(pointLight);
-
-    // Load the 3D model
+    // --- MODEL ---
     const loader = new GLTFLoader();
     let model: THREE.Group | null = null;
     let mixer: THREE.AnimationMixer | null = null;
+    let material: THREE.MeshStandardMaterial | null = null;
 
-    loader.load(
-      '/logo-3d.glb',
-      (gltf) => {
-        model = gltf.scene;
-        
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 2 / maxDim;
-        
-        model.scale.set(scale, scale, scale);
-        model.position.sub(center.multiplyScalar(scale));
-        
-        // Enhanced material with gold color
-        model.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const mesh = child as THREE.Mesh;
-            if (mesh.material) {
-              const material = new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                metalness: 0.9,
-                roughness: 0.15,
-                envMapIntensity: 1.5,
-              });
-              mesh.material = material;
-            }
-          }
-        });
+    loader.load("/logo-3d.glb", (gltf) => {
+      model = gltf.scene;
 
-        scene.add(model);
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      model.position.sub(center); // Center pivot
+      const maxDim = Math.max(
+        box.getSize(new THREE.Vector3()).x,
+        box.getSize(new THREE.Vector3()).y,
+      );
+      const scale = 3.2 / maxDim;
+      model.scale.set(scale, scale, scale);
 
-        if (gltf.animations && gltf.animations.length > 0) {
-          mixer = new THREE.AnimationMixer(model);
-          gltf.animations.forEach((clip) => {
-            mixer!.clipAction(clip).play();
+      // DARK IRON MATERIAL
+      model.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          material = new THREE.MeshStandardMaterial({
+            color: 0x222222, // Dark base
+            metalness: 0.9,
+            roughness: 0.6,
+            emissive: CONFIG.glowColor,
+            emissiveIntensity: 0, // Start off
           });
+          mesh.material = material;
         }
-      },
-      undefined,
-      (error) => {
-        console.error('Error loading model:', error);
-      }
-    );
+      });
 
-    let time = 0;
+      scene.add(model);
+      if (gltf.animations.length) {
+        mixer = new THREE.AnimationMixer(model);
+        gltf.animations.forEach((clip) => mixer!.clipAction(clip).play());
+      }
+      if (loaderEl) loaderEl.style.opacity = "0";
+    });
+
+    // --- INTERACTION ---
+    container.addEventListener("mouseenter", () => {
+      isHovered = true;
+    });
+    container.addEventListener("mouseleave", () => {
+      isHovered = false;
+    });
+
+    // --- ANIMATION LOOP ---
     const clock = new THREE.Clock();
 
     function animate() {
       requestAnimationFrame(animate);
-
       const delta = clock.getDelta();
-      time += delta;
+      const time = clock.getElapsedTime();
+
+      // 1. Calculate Targets
+      const targetPixel = isHovered ? CONFIG.pixelHover : CONFIG.pixelIdle;
+      const targetRotSpeed = isHovered
+        ? CONFIG.rotSpeedHover
+        : CONFIG.rotSpeedIdle;
+      const targetGlow = isHovered
+        ? CONFIG.glowIntensityHover
+        : CONFIG.glowIntensityIdle;
+
+      // 2. Interpolate (Smooth Transition) - LERP
+      const lerpFactor = delta * 5.0; // Speed of transition
+
+      currentPixelSize += (targetPixel - currentPixelSize) * lerpFactor;
+      currentRotSpeed += (targetRotSpeed - currentRotSpeed) * lerpFactor;
+      currentGlow += (targetGlow - currentGlow) * lerpFactor;
+
+      // 3. Apply to Scene
+      shaderPass.uniforms["pixelSize"].value = currentPixelSize;
 
       if (model) {
-        if (isHovered) {
-          // Smoothly rotate to face user (0, 0, 0) and center position
-          targetRotationY = 0;
-          targetRotationX = 0;
-          targetPositionY = 0;
-        } else {
-          // Normal animation
-          targetRotationY = time * 0.3;
-          targetRotationX = Math.sin(time * 0.5) * 0.1;
-          targetPositionY = Math.sin(time * 0.8) * 0.15;
-        }
-        
-        // Smooth interpolation for all transformations
-        model.rotation.y += (targetRotationY - model.rotation.y) * 0.1;
-        model.rotation.x += (targetRotationX - model.rotation.x) * 0.1;
-        model.position.y += (targetPositionY - model.position.y) * 0.1;
+        model.rotation.y += currentRotSpeed * delta;
+        model.position.y = Math.sin(time * 1.5) * 0.1; // Floating
       }
 
-      if (mixer) {
-        mixer.update(delta);
+      if (material) {
+        material.emissiveIntensity = currentGlow;
+        // Zmieniamy też kolor bazowy lekko w stronę czerwieni jak jest gorący
+        const baseColor = isHovered
+          ? new THREE.Color(0x331111)
+          : new THREE.Color(0x222222);
+        material.color.lerp(baseColor, lerpFactor);
       }
 
-      // Smooth transition for dithering values
-      currentGridSize += (targetGridSize - currentGridSize) * 0.1;
-      currentPixelSize += (targetPixelSize - currentPixelSize) * 0.1;
-      ditheringPass.uniforms['gridSize'].value = currentGridSize;
-      ditheringPass.uniforms['pixelSizeRatio'].value = currentPixelSize;
+      // Fire light intensity follows the glow
+      fireLight.intensity = currentGlow * 2.0;
 
-      // Render with post-processing
+      if (mixer) mixer.update(delta);
       composer.render();
     }
-
     animate();
 
-    function handleResize() {
+    window.addEventListener("resize", () => {
       if (!container) return;
-      
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-
-      camera.aspect = width / height;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-
-      renderer.setSize(width, height);
-      composer.setSize(width, height);
-      
-      ditheringPass.uniforms['resolution'].value.set(
-        width * window.devicePixelRatio,
-        height * window.devicePixelRatio
-      );
-    }
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      renderer.dispose();
-      composer.dispose();
-      scene.clear();
-    };
+      renderer.setSize(w, h);
+      composer.setSize(w, h);
+      shaderPass.uniforms["resolution"].value.set(w, h);
+    });
   }
 
-  document.addEventListener('DOMContentLoaded', initLogo3D);
-  document.addEventListener('astro:page-load', initLogo3D);
+  document.addEventListener("astro:page-load", initArtifact);
+  document.addEventListener("DOMContentLoaded", initArtifact);
 </script>
