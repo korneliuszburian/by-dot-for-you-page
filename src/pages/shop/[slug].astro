@@ -3,6 +3,7 @@ import productsData from "../../../public/dataset/output.json";
 import Layout from "../../layouts/Layout.astro";
 import GothicButton from "../../components/GothicButton.astro";
 import GothicFrame from "../../components/GothicFrame.astro";
+import Logo3D from "../../components/Logo3D.astro";
 import { Image } from "astro:assets";
 import type { GetStaticPaths } from "astro";
 
@@ -57,7 +58,16 @@ const features = Array.isArray(productData.website_des)
   description={`Handmade ${productData.product_name} by Dawid Olek. ${productData.fabric}. ${productData.website_des}`}
   backgroundVideoFilter="brightness(0.3)"
 >
-  <div class="product-screen">
+  <div class="product-screen relative">
+    <!-- Floating Home Logo -->
+    <a
+      href="/"
+      class="absolute top-6 left-6 z-50 block drop-shadow-[0_0_15px_rgba(255,60,0,0.3)] hover:drop-shadow-[0_0_25px_rgba(255,60,0,0.6)] transition-all duration-300"
+    >
+      <Logo3D size="small" class="pointer-events-none" />
+      <span class="sr-only">Wróć na stronę główną</span>
+    </a>
+
     <!-- Main game-style container -->
     <div class="inventory-panel">
       <!-- Left Column: Item Display -->
