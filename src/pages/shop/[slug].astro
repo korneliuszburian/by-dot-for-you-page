@@ -168,17 +168,51 @@ const features = Array.isArray(productData.website_des)
 
             <!-- Features List (like skill list in RPG) -->
             <div class="features-section">
-              <h3 class="section-title">Właściwości</h3>
-              <ul class="features-list">
-                {
-                  features.map((feature: string) => (
-                    <li class="feature-item">
-                      <span class="feature-icon">◆</span>
-                      {feature}
-                    </li>
-                  ))
-                }
-              </ul>
+              {
+                features.length > 0 && (
+                  <>
+                    <h3 class="section-title">Właściwości</h3>
+                    <ul class="features-list">
+                      {features.map((feature: string) => (
+                        <li class="feature-item">
+                          <span class="feature-icon">◆</span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )
+              }
+
+              {/* Care Instructions */}
+              {
+                productData.care_instruction &&
+                  productData.care_instruction.length > 0 && (
+                    <div
+                      class="care-section"
+                      style="margin-top: var(--space-s);"
+                    >
+                      <h3 class="section-title">Pielęgnacja</h3>
+                      <ul class="features-list">
+                        {Array.isArray(productData.care_instruction) ? (
+                          productData.care_instruction.map(
+                            (instruction: string) => (
+                              <li class="feature-item">
+                                <span class="feature-icon">◆</span>
+                                {instruction}
+                              </li>
+                            ),
+                          )
+                        ) : (
+                          <li class="feature-item">
+                            <span class="feature-icon">◆</span>
+                            {productData.care_instruction}
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )
+              }
             </div>
 
             <!-- Price Display (like gold in inventory) -->
@@ -192,7 +226,7 @@ const features = Array.isArray(productData.website_des)
               {
                 isAvailable ? (
                   <GothicButton
-                    variant="button4"
+                    variant="button5"
                     size="medium"
                     class="action-btn"
                     data-open-popup="true"
