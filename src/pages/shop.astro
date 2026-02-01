@@ -62,7 +62,7 @@ const description =
       <div class="hero-content flow text-center pt-8 pb-4">
         <a href="/" class="inline-block">
           <Logo3D size="small" class="pointer-events-none" />
-          <span class="sr-only">Wróć na stronę główną</span>
+          <span class="sr-only">Return to home</span>
         </a>
       </div>
 
@@ -70,7 +70,7 @@ const description =
         <div class="filters-container flow flow-space-l wrapper">
           <div class="flow flow-space-xs">
             <div class="filter-group">
-              <span class="filter-label">Dostępność:</span>
+              <span class="filter-label">Availability:</span>
               <div class="filter-buttons">
                 <GothicButton
                   variant="button5"
@@ -97,7 +97,7 @@ const description =
                   class="filter-btn"
                   data-filter="unavailable"
                 >
-                  Niedostępne ({
+                  Unavailable ({
                     allProducts.filter((p) => p.data.status === "Unavailable")
                       .length
                   })
@@ -204,7 +204,7 @@ const description =
                           </div>
                           <div class="shop__product-details">
                             <span class="shop__product-size">
-                              Rozmiar: {product.data.size_eu}
+                              Size: {product.data.size_eu}
                             </span>
                           </div>
                         </div>
@@ -216,7 +216,7 @@ const description =
             </div>
 
             <div class="no-results" style="display: none;">
-              <p>Nie znaleziono produktów spełniających kryteria.</p>
+              <p>No products found matching criteria.</p>
             </div>
           </section>
         </div>

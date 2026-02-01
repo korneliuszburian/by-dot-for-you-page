@@ -65,7 +65,7 @@ const features = Array.isArray(productData.website_des)
       class="absolute top-6 left-6 z-50 block drop-shadow-[0_0_15px_rgba(255,60,0,0.3)] hover:drop-shadow-[0_0_25px_rgba(255,60,0,0.6)] transition-all duration-300"
     >
       <Logo3D size="small" class="pointer-events-none" />
-      <span class="sr-only">Wróć na stronę główną</span>
+      <span class="sr-only">Return to home</span>
     </a>
 
     <!-- Main game-style container -->
@@ -153,15 +153,15 @@ const features = Array.isArray(productData.website_des)
             <!-- Stats Grid -->
             <div class="stats-grid">
               <div class="stat-row">
-                <span class="stat-label">Rozmiar</span>
+                <span class="stat-label">Size</span>
                 <span class="stat-value">{productData.size_eu}</span>
               </div>
               <div class="stat-row">
-                <span class="stat-label">Materiał</span>
+                <span class="stat-label">Fabric</span>
                 <span class="stat-value">{productData.fabric}</span>
               </div>
               <div class="stat-row">
-                <span class="stat-label">Edycja</span>
+                <span class="stat-label">Edition</span>
                 <span class="stat-value stat-rare">1 of 1</span>
               </div>
             </div>
@@ -171,7 +171,7 @@ const features = Array.isArray(productData.website_des)
               {
                 features.length > 0 && (
                   <>
-                    <h3 class="section-title">Właściwości</h3>
+                    <h3 class="section-title">Features</h3>
                     <ul class="features-list">
                       {features.map((feature: string) => (
                         <li class="feature-item">
@@ -192,7 +192,7 @@ const features = Array.isArray(productData.website_des)
                       class="care-section"
                       style="margin-top: var(--space-s);"
                     >
-                      <h3 class="section-title">Pielęgnacja</h3>
+                      <h3 class="section-title">Care</h3>
                       <ul class="features-list">
                         {Array.isArray(productData.care_instruction) ? (
                           productData.care_instruction.map(
@@ -215,6 +215,40 @@ const features = Array.isArray(productData.website_des)
               }
             </div>
 
+            <!-- Measurements Table -->
+            <div
+              class="measurements-section"
+              style="margin-top: var(--space-s);"
+            >
+              <h3 class="section-title">Measurements</h3>
+              <div class="measurements-grid">
+                <div class="measurement-row">
+                  <span class="measurement-label">Wait (A)</span>
+                  <span class="measurement-value"
+                    >{productData.size_a_waist}</span
+                  >
+                </div>
+                <div class="measurement-row">
+                  <span class="measurement-label">Length (B)</span>
+                  <span class="measurement-value"
+                    >{productData.size_b_length}</span
+                  >
+                </div>
+                <div class="measurement-row">
+                  <span class="measurement-label">Leg Opening (C)</span>
+                  <span class="measurement-value"
+                    >{productData.size_c_leg_opening}</span
+                  >
+                </div>
+                <div class="measurement-row">
+                  <span class="measurement-label">Inseam (D)</span>
+                  <span class="measurement-value"
+                    >{productData.size_d_inseam}</span
+                  >
+                </div>
+              </div>
+            </div>
+
             <!-- Price Display (like gold in inventory) -->
             <div class="price-display">
               <span class="price-amount">{productData.price_pln}</span>
@@ -231,7 +265,7 @@ const features = Array.isArray(productData.website_des)
                     class="action-btn"
                     data-open-popup="true"
                   >
-                    Skontaktuj się
+                    Contact Us
                   </GothicButton>
                 ) : (
                   <GothicButton
@@ -251,7 +285,7 @@ const features = Array.isArray(productData.website_des)
         <!-- Footer info -->
         <div class="panel-footer">
           <span class="maker">By Dawid Olek</span>
-          <a href="/shop" class="back-link">← Powrót</a>
+          <a href="/shop" class="back-link">← Back</a>
         </div>
       </div>
     </div>
@@ -292,7 +326,7 @@ const features = Array.isArray(productData.website_des)
               <GothicButton
                 variant="button4"
                 size="medium"
-                href={`mailto:kontakt@dotforyou.pl?subject=Zainteresowanie: ${productData.product_name}`}
+                href={`mailto:kontakt@dotforyou.pl?subject=Inquiry: ${productData.product_name}`}
                 class="contact-popup__option"
               >
                 Email
@@ -313,7 +347,7 @@ const features = Array.isArray(productData.website_des)
                 class="contact-popup__close"
                 data-close-popup="true"
               >
-                Zamknij
+                Close
               </GothicButton>
             </div>
           </div>
@@ -544,6 +578,34 @@ const features = Array.isArray(productData.website_des)
     font-size: 0.6em;
     margin-top: 0.4em;
     flex-shrink: 0;
+  }
+
+  /* Measurements Grid */
+  .measurements-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xs) var(--space-m);
+    background: rgba(0, 0, 0, 0.2);
+    padding: var(--space-xs);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .measurement-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .measurement-label {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    text-transform: uppercase;
+  }
+
+  .measurement-value {
+    font-family: var(--font-mono);
+    color: var(--color-highlight-bone);
+    font-size: 0.85rem;
   }
 
   /* Price Display (gold-style) */
