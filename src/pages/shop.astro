@@ -7,6 +7,7 @@ import {
   getAllProducts,
   getCategories,
   getCategoryCounts,
+  getCollections,
 } from "../utils/products-dataset";
 
 const allProducts = getAllProducts();
@@ -19,6 +20,27 @@ const categoryCounts = getCategoryCounts(allProducts);
 
 // Get unique categories
 const categories = getCategories(allProducts);
+const collections = getCollections(allProducts);
+const collectionPrefilterRules = collections
+  .map((collection) => {
+    const collectionName = collection.name.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+
+    return `
+      :root[data-collection-filter="${collectionName}"] .shop__product-card:not([data-collection="${collectionName}"]) {
+        display: none;
+      }
+
+      :root[data-collection-filter="${collectionName}"] .collection-btn {
+        opacity: 0.75;
+      }
+
+      :root[data-collection-filter="${collectionName}"] .collection-btn.active,
+      :root[data-collection-filter="${collectionName}"] .collection-btn[data-collection-filter="${collectionName}"] {
+        opacity: 1;
+      }
+    `;
+  })
+  .join("\n");
 
 // SEO metadata
 const title = "Dot For You - Handmade Clothing Collection";
@@ -31,6 +53,18 @@ const description =
   description={description}
   backgroundVideoFilter="brightness(0.7)"
 >
+  <script is:inline>
+    const requestedCollection = new URLSearchParams(window.location.search).get(
+      "collection",
+    );
+
+    if (requestedCollection) {
+      document.documentElement.dataset.collectionFilter = requestedCollection;
+    } else {
+      delete document.documentElement.dataset.collectionFilter;
+    }
+  </script>
+
   <div class="shop-container" transition:animate="fade">
     <!-- Hero Section -->
     <section class="shop-hero">
@@ -100,6 +134,32 @@ const description =
                       data-category={category}
                     >
                       {category} ({categoryCounts[category] || 0})
+                    </GothicButton>
+                  ))
+                }
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <span class="filter-label">Collection:</span>
+              <div class="filter-buttons">
+                <GothicButton
+                  variant="button5"
+                  size="medium"
+                  class="collection-btn active"
+                  data-collection-filter="all"
+                >
+                  All ({allProducts.length})
+                </GothicButton>
+                {
+                  collections.map((collection) => (
+                    <GothicButton
+                      variant="button5"
+                      size="medium"
+                      class="collection-btn"
+                      data-collection-filter={collection.name}
+                    >
+                      {collection.name} ({collection.count})
                     </GothicButton>
                   ))
                 }
@@ -200,6 +260,8 @@ const description =
   </div>
 </Layout>
 
+<style is:inline set:html={collectionPrefilterRules}></style>
+
 <style>
   .shop-hero {
     position: relative;
@@ -283,7 +345,8 @@ const description =
   }
 
   .filter-btn.active,
-  .category-btn.active {
+  .category-btn.active,
+  .collection-btn.active {
     opacity: 1;
   }
 
@@ -425,6 +488,7 @@ const description =
     // Filter state
     let currentAvailabilityFilter = "all";
     let currentCategoryFilter = "all";
+    let currentCollectionFilter = "all";
 
     // Filter buttons
     const filterBtns = document.querySelectorAll(
@@ -433,6 +497,31 @@ const description =
     const categoryBtns = document.querySelectorAll(
       ".category-btn",
     ) as NodeListOf<HTMLButtonElement>;
+    const collectionBtns = document.querySelectorAll(
+      ".collection-btn",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    function updateActiveState(buttons: NodeListOf<HTMLButtonElement>, value: string, attribute: string) {
+      buttons.forEach((button) => {
+        const buttonValue = button.getAttribute(attribute) || "all";
+        button.classList.toggle("active", buttonValue === value);
+      });
+    }
+
+    function syncCollectionQueryParam() {
+      const url = new URL(window.location.href);
+
+      if (currentCollectionFilter === "all") {
+        url.searchParams.delete("collection");
+        delete document.documentElement.dataset.collectionFilter;
+      } else {
+        url.searchParams.set("collection", currentCollectionFilter);
+        document.documentElement.dataset.collectionFilter =
+          currentCollectionFilter;
+      }
+
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
 
     // Apply filters function with smooth transitions
     // Apply filters function
@@ -441,6 +530,7 @@ const description =
 
       productCards.forEach((card) => {
         const cardCategory = card.getAttribute("data-category");
+        const cardCollection = card.getAttribute("data-collection");
         const cardAvailable = card.getAttribute("data-available") === "true";
 
         let showCard = true;
@@ -459,6 +549,13 @@ const description =
         if (
           currentCategoryFilter !== "all" &&
           cardCategory !== currentCategoryFilter
+        ) {
+          showCard = false;
+        }
+
+        if (
+          currentCollectionFilter !== "all" &&
+          cardCollection !== currentCollectionFilter
         ) {
           showCard = false;
         }
@@ -548,12 +645,67 @@ const description =
       });
     });
 
+    collectionBtns.forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (isTransitioning) return;
+
+        currentCollectionFilter =
+          btn.getAttribute("data-collection-filter") || "all";
+        updateActiveState(
+          collectionBtns,
+          currentCollectionFilter,
+          "data-collection-filter",
+        );
+        syncCollectionQueryParam();
+
+        if ("startViewTransition" in document) {
+          isTransitioning = true;
+          try {
+            await (document as any).startViewTransition(() => {
+              applyFilters();
+            }).ready;
+          } catch (e) {
+            console.log("Transition skipped or aborted", e);
+            applyFilters();
+          } finally {
+            isTransitioning = false;
+          }
+        } else {
+          applyFilters();
+        }
+      });
+    });
+
     // Initialize with proper visibility
     productCards.forEach((card) => {
       card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
       card.style.opacity = "1";
       card.style.transform = "scale(1)";
     });
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const requestedCollection = searchParams.get("collection");
+    const hasRequestedCollection = requestedCollection
+      ? [...collectionBtns].some(
+          (button) =>
+            button.getAttribute("data-collection-filter") === requestedCollection,
+        )
+      : false;
+
+    if (requestedCollection && hasRequestedCollection) {
+      currentCollectionFilter = requestedCollection;
+      updateActiveState(
+        collectionBtns,
+        currentCollectionFilter,
+        "data-collection-filter",
+      );
+      document.documentElement.dataset.collectionFilter =
+        currentCollectionFilter;
+    } else {
+      delete document.documentElement.dataset.collectionFilter;
+    }
+
+    applyFilters();
 
     console.log("Filters initialized with", productCards.length, "products");
   }

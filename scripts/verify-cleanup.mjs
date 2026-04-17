@@ -157,6 +157,65 @@ const verifyRouteOwnership = async () => {
   pushFailures("route-ownership", failures);
 };
 
+const verifyCollectionHandoff = async () => {
+  const failures = [];
+  const collectionsHtml = await readFile(
+    path.join(distDir, "collections", "index.html"),
+    "utf8",
+  );
+  const shopHtml = await readFile(path.join(distDir, "shop", "index.html"), "utf8");
+  const shopSource = await readFile(path.join(root, "src", "pages", "shop.astro"), "utf8");
+  const dataset = JSON.parse(
+    await readFile(path.join(root, "public", "dataset", "output.json"), "utf8"),
+  );
+  const expectedCollections = Object.entries(
+    dataset.reduce((acc, product) => {
+      acc[product.collection] = (acc[product.collection] || 0) + 1;
+      return acc;
+    }, {}),
+  );
+
+  for (const [collectionName, collectionCount] of expectedCollections) {
+    const encodedHref = `/shop?collection=${encodeURIComponent(collectionName)}`;
+
+    if (!collectionsHtml.includes(encodedHref)) {
+      failures.push(`/collections is missing handoff URL ${encodedHref}.`);
+    }
+
+    if (!collectionsHtml.includes(collectionName)) {
+      failures.push(`/collections is missing collection label "${collectionName}".`);
+    }
+
+    if (!collectionsHtml.includes(`${collectionCount} products`)) {
+      failures.push(
+        `/collections is missing the count marker "${collectionCount} products" for "${collectionName}".`,
+      );
+    }
+
+    if (!shopHtml.includes(`data-collection-filter="${collectionName}"`)) {
+      failures.push(`/shop does not emit a filter control for collection "${collectionName}".`);
+    }
+  }
+
+  if (!shopSource.includes("Collection:")) {
+    failures.push("src/pages/shop.astro does not expose a collection filter group.");
+  }
+
+  if (!shopSource.includes("URLSearchParams")) {
+    failures.push("src/pages/shop.astro does not read query params for collection handoff.");
+  }
+
+  if (!shopSource.includes("data-collection-filter")) {
+    failures.push("src/pages/shop.astro does not mark collection filter controls for runtime handoff.");
+  }
+
+  if (!shopSource.includes("document.documentElement.dataset.collectionFilter")) {
+    failures.push("src/pages/shop.astro does not pre-seed collection state on the document root.");
+  }
+
+  pushFailures("collection-handoff", failures);
+};
+
 const verifyShellMedia = async () => {
   const failures = [];
   const astroDir = path.join(distDir, "_astro");
@@ -352,6 +411,7 @@ const verifyTailwindMigration = async () => {
 await verifyCommerceDataSource();
 await verifyDesignSystemPage();
 await verifyRouteOwnership();
+await verifyCollectionHandoff();
 await verifyShellMedia();
 await verifyTailwindMigration();
 

@@ -28,6 +28,11 @@ export interface CommerceProduct {
   };
 }
 
+export interface CollectionSummary {
+  name: string;
+  count: number;
+}
+
 const slugifyProduct = (product: DatasetProduct) =>
   `${product.product_name.toLowerCase().replace(/\s+/g, "-")}-${product.id}`;
 
@@ -78,4 +83,22 @@ export function getCategoryCounts(products: CommerceProduct[] = allProducts) {
 
 export function getCategories(products: CommerceProduct[] = allProducts) {
   return [...new Set(products.map((product) => product.data.type))];
+}
+
+export function getCollectionCounts(products: CommerceProduct[] = allProducts) {
+  return products.reduce<Record<string, number>>((acc, product) => {
+    const collection = product.data.collection;
+    acc[collection] = (acc[collection] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+export function getCollections(
+  products: CommerceProduct[] = allProducts,
+): CollectionSummary[] {
+  const collectionCounts = getCollectionCounts(products);
+
+  return Object.entries(collectionCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
