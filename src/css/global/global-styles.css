@@ -1,9 +1,4 @@
-/* 
-  Global styles 
-
-  Low-specificity, global styles that apply to the whole 
-  project: https://cube.fyi/css.html
-*/
+/* Base document defaults. */
 body {
   background: var(--color-light);
   color: var(--color-dark);

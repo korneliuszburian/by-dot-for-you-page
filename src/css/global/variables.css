@@ -1,9 +1,4 @@
-/* src/css/global/variables.css */
-
-/**
- * Gothic Design System: Base Variables
- * These variables define the structure and shared properties across all themes
- */
+/* Shared theme variables. */
 
  :root {
   --gutter: var(--space-s-l);

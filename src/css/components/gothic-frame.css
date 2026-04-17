@@ -1,5 +1,3 @@
-/* src/css/components/gothic-frame.css */
-
 [data-gothic-frame] {
   border-image-source: var(--frame-asset);
   background-image: var(--background-asset);

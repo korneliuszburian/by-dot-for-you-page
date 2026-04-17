@@ -1,7 +1,3 @@
-/*
-WRAPPER COMPOSITION 
-A common wrapper/container
-*/
 .wrapper {
   margin-inline: auto;
   max-width: var(--wrapper-max-width);

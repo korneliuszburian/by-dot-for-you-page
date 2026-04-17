@@ -1,28 +1,21 @@
 import viewports from '../design-tokens/viewports.json';
 
-/**
- * Token interface representing a design token with name, min and max values
- */
 interface Token {
   name: string;
   min: number;
   max: number;
 }
 
-/**
- * Result interface representing the output of the clamp generator
- */
 interface ClampResult {
   name: string;
   value: string;
 }
 
 /**
- * Takes an array of tokens and sends back and array of name
- * and clamp pairs for CSS fluid values.
+ * Builds fluid CSS values from token ranges.
  *
- * @param {Token[]} tokens array of {name: string, min: number, max: number}
- * @returns {(ClampResult[] | string[])} Array of name/value pairs or string values
+ * @param {Token[]} tokens Array of token ranges.
+ * @returns {(ClampResult[] | string[])} CSS values keyed by token name.
  */
 const clampGenerator = (tokens: Token[]): (ClampResult | string)[] => {
   const rootSize = 16;
