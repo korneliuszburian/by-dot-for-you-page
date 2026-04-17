@@ -22,13 +22,10 @@ const sizeClasses = {
 const currentSizeClass = sizeClasses[size] || sizeClasses.medium;
 ---
 
-<div
-  id="gothic-artifact-container"
-  class={`logo-3d ${currentSizeClass} ${className}`}
->
-  <canvas id="artifact-canvas" class="logo-3d__canvas"></canvas>
+<div data-logo-3d class={`logo-3d ${currentSizeClass} ${className}`}>
+  <canvas data-logo-3d-canvas class="logo-3d__canvas"></canvas>
 
-  <div id="artifact-loader" class="logo-3d__loader">
+  <div data-logo-3d-loader class="logo-3d__loader">
     <span class="logo-3d__loader-text">Summoning...</span>
   </div>
 </div>
@@ -81,6 +78,7 @@ const currentSizeClass = sizeClasses[size] || sizeClasses.medium;
     justify-content: center;
     pointer-events: none;
     z-index: 10;
+    transition: opacity 200ms ease;
   }
 
   .logo-3d__loader-text {
@@ -104,260 +102,104 @@ const currentSizeClass = sizeClasses[size] || sizeClasses.medium;
 </style>
 
 <script>
-  import * as THREE from "three";
-  import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-  import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-  import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-  import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+  const LOGO_SELECTOR = "[data-logo-3d]";
+  const RUNTIME_KEY = "__byDotLogo3DRuntime";
 
-  // KONFIGURACJA ZACHOWANIA
-  const CONFIG = {
-    // Pixelation
-    pixelIdle: 4.0, // Mocne ziarno (PS1 style)
-    pixelHover: 1.5, // Wyostrzenie (żeby zobaczyć detale)
-
-    // Rotation
-    rotSpeedIdle: 0.3,
-    rotSpeedHover: 0.8, // Szybszy obrót przy aktywacji
-
-    // Glow / Emissive
-    glowColor: 0xff6600, // Ogień/Magma
-    glowIntensityIdle: 0.0,
-    glowIntensityHover: 1.5,
+  type Logo3DRuntime = {
+    bindPageLifecycle: () => void;
+    initAll: () => void;
   };
 
-  const DitheringShader = {
-    uniforms: {
-      tDiffuse: { value: null },
-      resolution: { value: new THREE.Vector2() },
-      pixelSize: { value: 1.0 },
-    },
-    vertexShader: `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform sampler2D tDiffuse;
-      uniform vec2 resolution;
-      uniform float pixelSize;
-      varying vec2 vUv;
+  type Logo3DModule = typeof import("../scripts/logo-3d-runtime");
 
-      float dither4x4(vec2 position, float brightness) {
-        int x = int(mod(position.x, 4.0));
-        int y = int(mod(position.y, 4.0));
-        int index = x + y * 4;
-        float limit = 0.0;
-        if (x < 8) {
-          if (index == 0) limit = 0.0625; if (index == 1) limit = 0.5625;
-          if (index == 2) limit = 0.1875; if (index == 3) limit = 0.6875;
-          if (index == 4) limit = 0.8125; if (index == 5) limit = 0.3125;
-          if (index == 6) limit = 0.9375; if (index == 7) limit = 0.4375;
-          if (index == 8) limit = 0.25;   if (index == 9) limit = 0.75;
-          if (index == 10) limit = 0.125; if (index == 11) limit = 0.625;
-          if (index == 12) limit = 1.0;   if (index == 13) limit = 0.5;
-          if (index == 14) limit = 0.875; if (index == 15) limit = 0.375;
-        }
-        return brightness < limit ? 0.0 : 1.0;
-      }
+  let runtimeModulePromise: Promise<Logo3DModule> | undefined;
 
-      void main() {
-        vec2 dxy = pixelSize / resolution;
-        vec2 coord = dxy * floor(vUv / dxy);
-        vec4 texel = texture2D(tDiffuse, coord);
-        if (texel.a < 0.1) discard;
-
-        // Podbijamy jasność dla efektu glow
-        vec3 color = texel.rgb;
-        float lum = dot(color, vec3(0.299, 0.587, 0.114));
-        
-        vec2 screenPos = gl_FragCoord.xy / (pixelSize * 0.7);
-        float dither = dither4x4(screenPos, lum);
-        
-        // Cień wciąż ciemny, ale światła (glow) przebijają dither
-        vec3 shadowColor = vec3(0.02, 0.02, 0.03); 
-        
-        // Jeśli kolor jest bardzo jasny (glow), ignorujemy dither (efekt ognia)
-        float glowFactor = max(color.r, max(color.g, color.b));
-        vec3 finalColor = mix(shadowColor, color, dither);
-        
-        if (glowFactor > 0.6) {
-           finalColor = color; // Glow przebija dither
-        }
-
-        gl_FragColor = vec4(finalColor, texel.a);
-      }
-    `,
-  };
-
-  function initArtifact() {
-    const container = document.getElementById("gothic-artifact-container");
-    const canvas = document.getElementById(
-      "artifact-canvas",
-    ) as HTMLCanvasElement;
-    const loaderEl = document.getElementById("artifact-loader");
-    if (!container || !canvas) return;
-
-    // --- STATE ---
-    let isHovered = false;
-    let currentPixelSize = CONFIG.pixelIdle;
-    let currentRotSpeed = CONFIG.rotSpeedIdle;
-    let currentGlow = CONFIG.glowIntensityIdle;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      35,
-      container.clientWidth / container.clientHeight,
-      0.1,
-      100,
-    );
-    camera.position.set(0, 0, 7);
-
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(1);
-
-    const composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
-    const shaderPass = new ShaderPass(DitheringShader);
-    shaderPass.uniforms["resolution"].value.set(
-      container.clientWidth,
-      container.clientHeight,
-    );
-    shaderPass.uniforms["pixelSize"].value = CONFIG.pixelIdle;
-    composer.addPass(shaderPass);
-
-    // --- LIGHTS ---
-    const ambientLight = new THREE.AmbientLight(0x223344, 0.5);
-    scene.add(ambientLight);
-
-    const moonLight = new THREE.DirectionalLight(0x6688ff, 2.0); // Zimne Rim Light
-    moonLight.position.set(-3, 5, -5);
-    scene.add(moonLight);
-
-    // Dynamiczne światło od "rozgrzanego" metalu
-    const fireLight = new THREE.PointLight(CONFIG.glowColor, 0, 10);
-    fireLight.position.set(2, 2, 2);
-    scene.add(fireLight);
-
-    // --- MODEL ---
-    const loader = new GLTFLoader();
-    let model: THREE.Group | null = null;
-    let mixer: THREE.AnimationMixer | null = null;
-    let material: THREE.MeshStandardMaterial | null = null;
-
-    loader.load("/logo-3d.glb", (gltf) => {
-      model = gltf.scene;
-
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      model.position.sub(center); // Center pivot
-      const maxDim = Math.max(
-        box.getSize(new THREE.Vector3()).x,
-        box.getSize(new THREE.Vector3()).y,
-      );
-      const scale = 3.2 / maxDim;
-      model.scale.set(scale, scale, scale);
-
-      // DARK IRON MATERIAL
-      model.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          material = new THREE.MeshStandardMaterial({
-            color: 0x222222, // Dark base
-            metalness: 0.9,
-            roughness: 0.6,
-            emissive: CONFIG.glowColor,
-            emissiveIntensity: 0, // Start off
-          });
-          mesh.material = material;
-        }
-      });
-
-      scene.add(model);
-      if (gltf.animations.length) {
-        mixer = new THREE.AnimationMixer(model);
-        gltf.animations.forEach((clip) => mixer!.clipAction(clip).play());
-      }
-      if (loaderEl) loaderEl.style.opacity = "0";
-    });
-
-    // --- INTERACTION ---
-    container.addEventListener("mouseenter", () => {
-      isHovered = true;
-    });
-    container.addEventListener("mouseleave", () => {
-      isHovered = false;
-    });
-
-    // --- ANIMATION LOOP ---
-    const timer = new THREE.Timer();
-
-    function animate(timestamp?: number) {
-      requestAnimationFrame(animate);
-      timer.update(timestamp);
-      const delta = timer.getDelta();
-      const time = timer.getElapsed();
-
-      // 1. Calculate Targets
-      const targetPixel = isHovered ? CONFIG.pixelHover : CONFIG.pixelIdle;
-      const targetRotSpeed = isHovered
-        ? CONFIG.rotSpeedHover
-        : CONFIG.rotSpeedIdle;
-      const targetGlow = isHovered
-        ? CONFIG.glowIntensityHover
-        : CONFIG.glowIntensityIdle;
-
-      // 2. Interpolate (Smooth Transition) - LERP
-      const lerpFactor = delta * 5.0; // Speed of transition
-
-      currentPixelSize += (targetPixel - currentPixelSize) * lerpFactor;
-      currentRotSpeed += (targetRotSpeed - currentRotSpeed) * lerpFactor;
-      currentGlow += (targetGlow - currentGlow) * lerpFactor;
-
-      // 3. Apply to Scene
-      shaderPass.uniforms["pixelSize"].value = currentPixelSize;
-
-      if (model) {
-        model.rotation.y += currentRotSpeed * delta;
-        model.position.y = Math.sin(time * 1.5) * 0.1; // Floating
-      }
-
-      if (material) {
-        material.emissiveIntensity = currentGlow;
-        // Zmieniamy też kolor bazowy lekko w stronę czerwieni jak jest gorący
-        const baseColor = isHovered
-          ? new THREE.Color(0x331111)
-          : new THREE.Color(0x222222);
-        material.color.lerp(baseColor, lerpFactor);
-      }
-
-      // Fire light intensity follows the glow
-      fireLight.intensity = currentGlow * 2.0;
-
-      if (mixer) mixer.update(delta);
-      composer.render();
-    }
-    animate();
-
-    window.addEventListener("resize", () => {
-      if (!container) return;
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-      composer.setSize(w, h);
-      shaderPass.uniforms["resolution"].value.set(w, h);
-    });
+  function loadLogo3DRuntime() {
+    runtimeModulePromise ??= import("../scripts/logo-3d-runtime.ts");
+    return runtimeModulePromise;
   }
 
-  document.addEventListener("astro:page-load", initArtifact);
-  document.addEventListener("DOMContentLoaded", initArtifact);
+  async function initArtifact(container: HTMLElement) {
+    if (container.dataset.logo3dInitialized === "true") return;
+
+    try {
+      const { initLogo3DArtifact } = await loadLogo3DRuntime();
+      if (!container.isConnected) return;
+      initLogo3DArtifact(container);
+    } catch {
+      container.dataset.logo3dInitialized = "false";
+      const loaderEl = container.querySelector("[data-logo-3d-loader]");
+      if (loaderEl instanceof HTMLElement) {
+        loaderEl.textContent = "Failed to summon";
+      }
+    }
+  }
+
+  function queueArtifactInit(container: HTMLElement) {
+    if (container.dataset.logo3dBound === "true") return;
+    container.dataset.logo3dBound = "true";
+
+    let started = false;
+    let observer: IntersectionObserver | undefined;
+
+    const start = () => {
+      if (started) return;
+      started = true;
+      observer?.disconnect();
+      void initArtifact(container);
+    };
+
+    container.addEventListener("mouseenter", start, { once: true });
+    container.addEventListener("focusin", start, { once: true });
+    container.addEventListener("touchstart", start, {
+      once: true,
+      passive: true,
+    });
+
+    if ("IntersectionObserver" in window) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              start();
+              break;
+            }
+          }
+        },
+        { rootMargin: "200px 0px" },
+      );
+
+      observer.observe(container);
+      return;
+    }
+
+    start();
+  }
+
+  function createRuntime(): Logo3DRuntime {
+    let lifecycleBound = false;
+
+    return {
+      bindPageLifecycle() {
+        if (lifecycleBound) return;
+        lifecycleBound = true;
+
+        document.addEventListener("astro:page-load", () => {
+          this.initAll();
+        });
+      },
+      initAll() {
+        document.querySelectorAll<HTMLElement>(LOGO_SELECTOR).forEach((node) => {
+          queueArtifactInit(node);
+        });
+      },
+    };
+  }
+
+  const runtimeWindow = window as unknown as Window &
+    Record<string, Logo3DRuntime | undefined>;
+  const runtime = (runtimeWindow[RUNTIME_KEY] ??= createRuntime());
+
+  runtime.bindPageLifecycle();
+  runtime.initAll();
 </script>
