@@ -163,6 +163,30 @@ const verifyContentConfigMigration = async () => {
   pushFailures("content-config-migration", failures);
 };
 
+const verifySiteMetadataOwnership = async () => {
+  const failures = [];
+  const astroConfig = await readFile(path.join(root, "astro.config.mjs"), "utf8");
+  const layoutSource = await readFile(path.join(root, "src", "layouts", "Layout.astro"), "utf8");
+
+  if (!astroConfig.includes("process.env.SITE_URL ?? process.env.PUBLIC_SITE_URL")) {
+    failures.push("astro.config.mjs does not source the canonical site URL from SITE_URL/PUBLIC_SITE_URL.");
+  }
+
+  if (!layoutSource.includes("../utils/site-metadata")) {
+    failures.push("src/layouts/Layout.astro does not import canonical site metadata ownership.");
+  }
+
+  if (!layoutSource.includes('rel="canonical"')) {
+    failures.push("src/layouts/Layout.astro does not emit canonical links.");
+  }
+
+  if (!layoutSource.includes('property="og:url"')) {
+    failures.push("src/layouts/Layout.astro does not emit og:url metadata.");
+  }
+
+  pushFailures("site-metadata-ownership", failures);
+};
+
 const verifyDesignSystemPage = async () => {
   const designSystemHtml = await readFile(
     path.join(distDir, "design-system", "index.html"),
@@ -485,14 +509,95 @@ const verifyTailwindMigration = async () => {
   pushFailures("tailwind-utility-migration", failures);
 };
 
+const verifyLogo3DPerformance = async () => {
+  const failures = [];
+  const logoSource = await readFile(
+    path.join(root, "src", "components", "Logo3D.astro"),
+    "utf8",
+  );
+  const builtAssets = await readdir(path.join(distDir, "_astro"));
+  const wrapperChunk = builtAssets.find((file) => file.startsWith("Logo3D.") && file.endsWith(".js"));
+  const runtimeChunk = builtAssets.find((file) =>
+    file.startsWith("logo-3d-runtime.") && file.endsWith(".js"),
+  );
+  const loaderChunk = builtAssets.find((file) =>
+    file.startsWith("three-loaders.") && file.endsWith(".js"),
+  );
+  const postprocessingChunk = builtAssets.find((file) =>
+    file.startsWith("three-postprocessing.") && file.endsWith(".js"),
+  );
+  const homepageHtml = await readFile(path.join(distDir, "index.html"), "utf8");
+  const shopHtml = await readFile(path.join(distDir, "shop", "index.html"), "utf8");
+
+  if (logoSource.includes('import("three")')) {
+    failures.push("src/components/Logo3D.astro still imports the full three namespace directly.");
+  }
+
+  if (!logoSource.includes("logo-3d-runtime")) {
+    failures.push("src/components/Logo3D.astro does not delegate runtime loading to a dedicated logo-3d-runtime module.");
+  }
+
+  if (!wrapperChunk) {
+    failures.push("dist/_astro is missing the emitted Logo3D wrapper chunk.");
+  } else {
+    const wrapperChunkSize = Buffer.byteLength(
+      await readFile(path.join(distDir, "_astro", wrapperChunk), "utf8"),
+    );
+
+    if (wrapperChunkSize > 5_000) {
+      failures.push(`Logo3D wrapper chunk is too large (${wrapperChunkSize} bytes, expected <= 5000).`);
+    }
+  }
+
+  if (!runtimeChunk) {
+    failures.push("dist/_astro is missing the dedicated logo-3d-runtime chunk.");
+  } else {
+    const runtimeChunkSize = Buffer.byteLength(
+      await readFile(path.join(distDir, "_astro", runtimeChunk), "utf8"),
+    );
+
+    if (runtimeChunkSize > 10_000) {
+      failures.push(`logo-3d-runtime chunk is too large (${runtimeChunkSize} bytes, expected <= 10000).`);
+    }
+  }
+
+  if (!loaderChunk) {
+    failures.push("dist/_astro is missing the split three-loaders chunk.");
+  }
+
+  if (!postprocessingChunk) {
+    failures.push("dist/_astro is missing the split three-postprocessing chunk.");
+  }
+
+  if (homepageHtml.includes("../scripts/logo-3d-runtime")) {
+    failures.push("dist/index.html still references the raw source path ../scripts/logo-3d-runtime.");
+  }
+
+  if (shopHtml.includes("../scripts/logo-3d-runtime")) {
+    failures.push("dist/shop/index.html still references the raw source path ../scripts/logo-3d-runtime.");
+  }
+
+  if (wrapperChunk && !homepageHtml.includes(`/_astro/${wrapperChunk}`)) {
+    failures.push(`dist/index.html does not load the emitted Logo3D wrapper chunk /_astro/${wrapperChunk}.`);
+  }
+
+  if (wrapperChunk && !shopHtml.includes(`/_astro/${wrapperChunk}`)) {
+    failures.push(`dist/shop/index.html does not load the emitted Logo3D wrapper chunk /_astro/${wrapperChunk}.`);
+  }
+
+  pushFailures("logo3d-performance", failures);
+};
+
 await verifyCommerceDataSource();
 await verifyTailwindIntegrationRemoval();
 await verifyContentConfigMigration();
+await verifySiteMetadataOwnership();
 await verifyDesignSystemPage();
 await verifyRouteOwnership();
 await verifyCollectionHandoff();
 await verifyShellMedia();
 await verifyTailwindMigration();
+await verifyLogo3DPerformance();
 
 if (allFailures.length > 0) {
   console.error("Cleanup verification failed:");

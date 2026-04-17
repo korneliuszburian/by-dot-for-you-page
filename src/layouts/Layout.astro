@@ -2,6 +2,7 @@
 import "../css/global.css";
 import { ClientRouter } from "astro:transitions";
 import { shellVideoUrl } from "../utils/shell-media";
+import { siteMetadata } from "../utils/site-metadata";
 
 interface Props {
   title: string;
@@ -11,25 +12,36 @@ interface Props {
 
 const {
   title,
-  description = "BY DOT FOR YOU ",
+  description = siteMetadata.defaultDescription,
   backgroundVideoFilter,
 } = Astro.props;
+
+const canonicalUrl = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site)
+  : undefined;
 ---
 
 <!doctype html>
-<html lang="en" transition:name="root" transition:animate="fade">
+<html
+  lang={siteMetadata.locale}
+  transition:name="root"
+  transition:animate="fade"
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content="index,follow" />
 
-    <!-- Gothic Sanctuary Meta -->
-    <meta name="theme-color" content="#1A1A1A" />
+    <meta name="theme-color" content={siteMetadata.themeColor} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+    <meta property="og:site_name" content={siteMetadata.name} />
     <meta property="og:type" content="website" />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl.href} />}
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl.href} />}
 
     <title>{title}</title>
 
