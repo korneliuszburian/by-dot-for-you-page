@@ -3,47 +3,22 @@ import Layout from "../layouts/Layout.astro";
 import GothicButton from "../components/GothicButton.astro";
 import Logo3D from "../components/Logo3D.astro";
 import { Image } from "astro:assets";
-import productsData from "../../public/dataset/output.json";
+import {
+  getAllProducts,
+  getCategories,
+  getCategoryCounts,
+} from "../utils/products-dataset";
 
-// Map JSON data to expected format and generate slugs
-const uniqueIds = new Set();
-const allProducts = productsData
-  .filter((product) => {
-    if (uniqueIds.has(product.id)) return false;
-    uniqueIds.add(product.id);
-    return true;
-  })
-  .map((product) => ({
-    ...product,
-    slug: `${product.product_name.toLowerCase().replace(/\s+/g, "-")}-${product.id}`,
-    data: {
-      ...product,
-      // Correct image paths by stripping 'Items/' and '/Website/' segments if present to match disk
-      images: product.images.map((img) => {
-        if (img.startsWith("/")) return img;
-        const cleanPath = img
-          .replace(/^Items\//, "")
-          .replace(/\/Website\//, "/");
-        return `/dataset/database/${cleanPath}`;
-      }),
-    },
-  }));
+const allProducts = getAllProducts();
 
 // Placeholder path correction
 const placeholderPath = "/placeholder.webp";
 
 // Calculate category and collection counts
-const categoryCounts: Record<string, number> = allProducts.reduce(
-  (acc: Record<string, number>, product) => {
-    const category = product.data.type;
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  },
-  {},
-);
+const categoryCounts = getCategoryCounts(allProducts);
 
 // Get unique categories
-const categories = [...new Set(allProducts.map((p) => p.data.type))];
+const categories = getCategories(allProducts);
 
 // SEO metadata
 const title = "Dot For You - Handmade Clothing Collection";

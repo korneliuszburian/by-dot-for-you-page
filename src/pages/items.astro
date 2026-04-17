@@ -1,10 +1,22 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import { canonicalCommerceRoute, routeCatalog } from "../utils/site-navigation";
 ---
 
-<Layout title="PRZEDMIOTY">
-  <div class="items-viewport">
-    <div class="items-viewport__background">
-    </div>
-  </div>
-</Layout>
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="refresh"
+      content={`0;url=${canonicalCommerceRoute}`}
+    />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={canonicalCommerceRoute} />
+    <title>{routeCatalog.itemsAlias.pageTitle}</title>
+  </head>
+  <body>
+    <p>
+      Przekierowanie do <a href={canonicalCommerceRoute}>kanonicznej listy przedmiotów</a>.
+    </p>
+  </body>
+</html>

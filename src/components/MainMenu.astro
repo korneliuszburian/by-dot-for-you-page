@@ -8,40 +8,7 @@ import GothicFrame from "./GothicFrame.astro";
 import GothicButton from "./GothicButton.astro";
 import Logo3D from "./Logo3D.astro";
 import { shellPosterUrl, shellVideoUrl } from "../utils/shell-media";
-
-// Polish navigation structure
-const menuItems = [
-  {
-    title: "NOWA KOLEKCJA",
-    route: "/",
-    status: "disabled",
-  },
-  {
-    title: "WCZYTAJ KOLEKCJE",
-    route: "/collections",
-    status: "active",
-  },
-  {
-    title: "SKLEP",
-    route: "/shop",
-    status: "active",
-  },
-  {
-    title: "PRZEDMIOTY",
-    route: "/items",
-    status: "active",
-  },
-  {
-    title: "LOOKBOOK",
-    route: "/lookbook",
-    status: "active",
-  },
-  {
-    title: "ZDJĘCIA",
-    route: "/photos",
-    status: "active",
-  },
-];
+import { mainMenuItems } from "../utils/site-navigation";
 
 // display the glass-like-logo-1.glb using three.js, it must interative with the background used inside of the main-menu__page-background, basically it must be a three.js scene with a background from the <source src="/assets/videos/testing-video-02.mp4" type="video/mp4" /> so the logo will be interactive with the background
 // and the background must be a video, so the logo will be interactive with the video background
@@ -86,7 +53,7 @@ const menuItems = [
           >
             <ul class="main-menu__list">
               {
-                menuItems.map((item) => (
+                mainMenuItems.map((item) => (
                   <li class="main-menu__item">
                     <GothicButton
                       variant={"button2"}

@@ -1,5 +1,4 @@
 ---
-import productsData from "../../../public/dataset/output.json";
 import Layout from "../../layouts/Layout.astro";
 import GothicButton from "../../components/GothicButton.astro";
 import GothicFrame from "../../components/GothicFrame.astro";
@@ -7,29 +6,14 @@ import { shellPosterUrl, shellVideoUrl } from "../../utils/shell-media";
 import Logo3D from "../../components/Logo3D.astro";
 import { Image } from "astro:assets";
 import type { GetStaticPaths } from "astro";
+import { getAllProducts } from "../../utils/products-dataset";
 
 // Generate static paths for all products
 export const getStaticPaths = (async () => {
-  return productsData.map((product) => {
-    const slug = `${product.product_name.toLowerCase().replace(/\s+/g, "-")}-${product.id}`;
+  return getAllProducts().map((product) => {
     return {
-      params: { slug },
-      props: {
-        product: {
-          ...product,
-          slug,
-          data: {
-            ...product,
-            images: product.images.map((img) => {
-              if (img.startsWith("/")) return img;
-              const cleanPath = img
-                .replace(/^Items\//, "")
-                .replace(/\/Website\//, "/");
-              return `/dataset/database/${cleanPath}`;
-            }),
-          },
-        },
-      },
+      params: { slug: product.slug },
+      props: { product },
     };
   });
 }) satisfies GetStaticPaths;

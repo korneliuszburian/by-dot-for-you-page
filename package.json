@@ -10,7 +10,9 @@
     "start": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
+    "verify:commerce-data-source": "node scripts/verify-commerce-data-source.mjs",
     "verify:shell-media": "node scripts/verify-shell-media-paths.mjs",
+    "verify:route-ownership": "node scripts/verify-route-ownership.mjs",
     "astro": "astro"
   },
   "dependencies": {
