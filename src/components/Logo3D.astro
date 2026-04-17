@@ -13,10 +13,10 @@ interface Props {
 const { class: className = "", size = "medium" } = Astro.props;
 
 const sizeClasses = {
-  small: "w-32 h-32",
-  medium: "w-full h-[300px]", // Original default
-  large: "w-full h-[500px]",
-  full: "w-full h-full",
+  small: "logo-3d--small",
+  medium: "logo-3d--medium",
+  large: "logo-3d--large",
+  full: "logo-3d--full",
 };
 
 const currentSizeClass = sizeClasses[size] || sizeClasses.medium;
@@ -24,24 +24,84 @@ const currentSizeClass = sizeClasses[size] || sizeClasses.medium;
 
 <div
   id="gothic-artifact-container"
-  class={`relative mx-auto overflow-hidden cursor-pointer group ${currentSizeClass} ${className}`}
+  class={`logo-3d ${currentSizeClass} ${className}`}
 >
-  <canvas
-    id="artifact-canvas"
-    class="block w-full h-full outline-none transition-transform duration-700 ease-out group-hover:scale-105"
-  ></canvas>
+  <canvas id="artifact-canvas" class="logo-3d__canvas"></canvas>
 
-  <div
-    id="artifact-loader"
-    class="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
-  >
-    <span
-      class="text-xs tracking-[0.2em] text-[#444] font-serif uppercase animate-pulse"
-    >
-      Summoning...
-    </span>
+  <div id="artifact-loader" class="logo-3d__loader">
+    <span class="logo-3d__loader-text">Summoning...</span>
   </div>
 </div>
+
+<style>
+  .logo-3d {
+    position: relative;
+    margin-inline: auto;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .logo-3d--small {
+    width: 8rem;
+    height: 8rem;
+  }
+
+  .logo-3d--medium {
+    width: 100%;
+    height: 300px;
+  }
+
+  .logo-3d--large {
+    width: 100%;
+    height: 500px;
+  }
+
+  .logo-3d--full {
+    width: 100%;
+    height: 100%;
+  }
+
+  .logo-3d__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    transition: transform 700ms ease-out;
+  }
+
+  .logo-3d:hover .logo-3d__canvas {
+    transform: scale(1.05);
+  }
+
+  .logo-3d__loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .logo-3d__loader-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: #444;
+    font-family: var(--font-primary);
+    text-transform: uppercase;
+    animation: logo-loader-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes logo-loader-pulse {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+</style>
 
 <script>
   import * as THREE from "three";

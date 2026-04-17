@@ -43,14 +43,11 @@ const features = Array.isArray(productData.website_des)
   description={`Handmade ${productData.product_name} by Dawid Olek. ${productData.fabric}. ${productData.website_des}`}
   backgroundVideoFilter="brightness(0.3)"
 >
-  <div class="product-screen relative">
+  <div class="product-screen">
     <!-- Floating Home Logo -->
-    <a
-      href="/"
-      class="absolute top-6 left-6 z-50 block drop-shadow-[0_0_15px_rgba(255,60,0,0.3)] hover:drop-shadow-[0_0_25px_rgba(255,60,0,0.6)] transition-all duration-300"
-    >
-      <Logo3D size="small" class="pointer-events-none" />
-      <span class="sr-only">Return to home</span>
+    <a href="/" class="product-home-link">
+      <Logo3D size="small" class="product-home-link__logo" />
+      <span class="visually-hidden">Return to home</span>
     </a>
 
     <!-- Main game-style container -->
@@ -66,9 +63,9 @@ const features = Array.isArray(productData.website_des)
           <div class="item-showcase">
             {
               productData.images.length > 0 ? (
-                <div class="relative w-full h-full flex items-center justify-center">
-                  <div class="image-loader absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                    <div class="w-8 h-8 border-2 border-stone-600 border-t-stone-300 rounded-full animate-spin" />
+                <div class="item-showcase__stage">
+                  <div class="image-loader">
+                    <div class="image-loader__spinner" />
                   </div>
                   <Image
                     src={productData.images[0]}
@@ -76,9 +73,9 @@ const features = Array.isArray(productData.website_des)
                     width={500}
                     height={500}
                     loading="eager"
-                    class="item-image relative z-10 transition-opacity duration-500 opacity-0"
+                    class="item-image item-image--loading"
                     transition:name={`product-image-${product.slug}`}
-                    onload="this.classList.remove('opacity-0'); this.parentElement.querySelector('.image-loader').style.display='none';"
+                    onload="this.classList.remove('item-image--loading'); this.parentElement.querySelector('.image-loader').style.display='none';"
                   />
                 </div>
               ) : (
@@ -353,6 +350,24 @@ const features = Array.isArray(productData.website_des)
     box-sizing: border-box;
   }
 
+  .product-home-link {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    z-index: 50;
+    display: block;
+    filter: drop-shadow(0 0 15px rgba(255, 60, 0, 0.3));
+    transition: filter 0.3s ease;
+  }
+
+  .product-home-link:hover {
+    filter: drop-shadow(0 0 25px rgba(255, 60, 0, 0.6));
+  }
+
+  .product-home-link__logo {
+    pointer-events: none;
+  }
+
   /* ===== MAIN INVENTORY PANEL ===== */
   .inventory-panel {
     display: grid;
@@ -392,6 +407,15 @@ const features = Array.isArray(productData.website_des)
     z-index: 0;
   }
 
+  .item-showcase__stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .item-image {
     max-width: 100%;
     max-height: 100%;
@@ -400,7 +424,37 @@ const features = Array.isArray(productData.website_des)
     object-fit: contain;
     border-radius: 4px;
     position: relative;
-    z-index: 1; /* Above skeleton */
+    z-index: 10;
+    transition: opacity 0.5s ease;
+  }
+
+  .item-image--loading {
+    opacity: 0;
+  }
+
+  .image-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .image-loader__spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #57534e;
+    border-top-color: #d6d3d1;
+    border-radius: 999px;
+    animation: product-image-loader-spin 0.8s linear infinite;
+  }
+
+  @keyframes product-image-loader-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   /* Gallery thumbnails strip */

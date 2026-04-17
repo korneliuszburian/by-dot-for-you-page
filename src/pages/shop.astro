@@ -34,10 +34,10 @@ const description =
   <div class="shop-container" transition:animate="fade">
     <!-- Hero Section -->
     <section class="shop-hero">
-      <div class="hero-content flow text-center pt-8 pb-4">
-        <a href="/" class="inline-block">
-          <Logo3D size="small" class="pointer-events-none" />
-          <span class="sr-only">Return to home</span>
+      <div class="hero-content shop-hero__content flow">
+        <a href="/" class="shop-home-link">
+          <Logo3D size="small" class="shop-home-link__logo" />
+          <span class="visually-hidden">Return to home</span>
         </a>
       </div>
 
@@ -132,9 +132,9 @@ const description =
                         href={`/shop/${product.slug}`}
                         class="product-link flow"
                       >
-                        <div class="shop__product-image-container relative">
-                          <div class="image-loader absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                            <div class="w-8 h-8 border-2 border-stone-600 border-t-stone-300 rounded-full animate-spin" />
+                        <div class="shop__product-image-container">
+                          <div class="image-loader">
+                            <div class="image-loader__spinner" />
                           </div>
 
                           {hasImage ? (
@@ -144,9 +144,9 @@ const description =
                               width={400}
                               height={400}
                               loading={loadingStrategy}
-                              class="shop__product-image relative z-10 transition-opacity duration-300 opacity-0"
+                              class="shop__product-image shop__product-image--loading"
                               transition:name={`product-image-${product.slug}`}
-                              onload="this.classList.remove('opacity-0'); this.parentElement.querySelector('.image-loader').style.display='none';"
+                              onload="this.classList.remove('shop__product-image--loading'); this.parentElement.querySelector('.image-loader').style.display='none';"
                             />
                           ) : (
                             <Image
@@ -155,9 +155,9 @@ const description =
                               width={400}
                               height={400}
                               loading="lazy"
-                              class="shop__product-image relative z-10 transition-opacity duration-300 opacity-0"
+                              class="shop__product-image shop__product-image--loading"
                               transition:name={`product-image-${product.slug}`}
-                              onload="this.classList.remove('opacity-0'); this.parentElement.querySelector('.image-loader').style.display='none';"
+                              onload="this.classList.remove('shop__product-image--loading'); this.parentElement.querySelector('.image-loader').style.display='none';"
                             />
                           )}
 
@@ -235,6 +235,19 @@ const description =
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
   }
 
+  .shop-hero__content {
+    padding-top: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  .shop-home-link {
+    display: inline-block;
+  }
+
+  .shop-home-link__logo {
+    pointer-events: none;
+  }
+
   .hero-title {
     font-weight: bold;
     text-transform: uppercase;
@@ -301,6 +314,41 @@ const description =
     text-decoration: none;
     color: inherit;
     display: block;
+  }
+
+  .image-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .image-loader__spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #57534e;
+    border-top-color: #d6d3d1;
+    border-radius: 999px;
+    animation: shop-image-loader-spin 0.8s linear infinite;
+  }
+
+  .shop__product-image {
+    position: relative;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+  }
+
+  .shop__product-image--loading {
+    opacity: 0;
+  }
+
+  @keyframes shop-image-loader-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .product-image-container {
