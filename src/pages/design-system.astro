@@ -1,0 +1,396 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GothicButton from "../components/GothicButton.astro";
+import GothicFrame from "../components/GothicFrame.astro";
+import Logo3D from "../components/Logo3D.astro";
+import colors from "../design-tokens/colors.json";
+import fonts from "../design-tokens/fonts.json";
+import spacing from "../design-tokens/spacing.json";
+
+const colorItems = colors.items;
+const fontItems = fonts.items;
+const spacingItems = spacing.items.slice(0, 10);
+const systemDecisions = [
+  "Homepage/menu pozostaje referencją wizualną dla całego systemu.",
+  "Shop jest kanoniczną listą produktów, a /items działa jako alias do /shop.",
+  "Runtime commerce opiera się teraz na public/dataset/output.json przez wspólny adapter danych.",
+  "Tailwind zostaje chwilowo jako cienka warstwa zgodności, ale nowy cleanup ma iść w lokalny CSS i tokeny.",
+];
+---
+
+<Layout
+  title="DESIGN SYSTEM"
+  description="Reference surface for the current design language, shared components, tokens, and cleanup decisions."
+  backgroundVideoFilter="brightness(0.45)"
+>
+  <main class="design-system-page">
+    <section class="design-system-hero">
+      <div class="design-system-hero__logo">
+        <Logo3D size="small" />
+      </div>
+      <div class="design-system-hero__copy">
+        <p class="design-system-eyebrow">Repository Reference Surface</p>
+        <h1 class="design-system-title">DESIGN SYSTEM</h1>
+        <p class="design-system-intro">
+          Jedno miejsce na aktualny język wizualny, żywe komponenty, tokeny i
+          decyzje, które mają prowadzić dalszy cleanup repozytorium.
+        </p>
+      </div>
+    </section>
+
+    <section class="design-system-section">
+      <h2 class="design-system-section__title">Komponenty</h2>
+      <div class="design-system-grid">
+        <GothicFrame
+          variant="ornate"
+          size="thick"
+          background="none"
+          class="design-card"
+        >
+          <div class="design-card__content">
+            <h3>Gothic Button</h3>
+            <p>Asset-backed CTA language used by the menu and commerce flows.</p>
+            <div class="design-card__actions">
+              <GothicButton variant="button2" size="large">Primary</GothicButton>
+              <GothicButton variant="button5" size="medium">Secondary</GothicButton>
+            </div>
+          </div>
+        </GothicFrame>
+
+        <GothicFrame
+          variant="old"
+          size="medium"
+          background="none"
+          class="design-card"
+        >
+          <div class="design-card__content">
+            <h3>Gothic Frame</h3>
+            <p>
+              Shared container language for menu, shop overlays, and structured
+              content surfaces.
+            </p>
+            <div class="design-card__frame-demo">
+              <span>Ornate / Old</span>
+              <span>Thin to Thick</span>
+            </div>
+          </div>
+        </GothicFrame>
+
+        <GothicFrame
+          variant="ornate"
+          size="medium"
+          background="none"
+          class="design-card"
+        >
+          <div class="design-card__content">
+            <h3>Logo 3D</h3>
+            <p>
+              Motion-heavy shell artifact used as the immersive visual anchor of
+              the homepage.
+            </p>
+            <div class="design-card__logo-preview">
+              <Logo3D size="small" />
+            </div>
+          </div>
+        </GothicFrame>
+      </div>
+    </section>
+
+    <section class="design-system-section">
+      <h2 class="design-system-section__title">Tokeny</h2>
+      <div class="design-system-grid design-system-grid--tokens">
+        <GothicFrame
+          variant="ornate"
+          size="medium"
+          background="none"
+          class="design-card"
+        >
+          <div class="design-card__content">
+            <h3>Kolory</h3>
+            <div class="token-swatches">
+              {
+                colorItems.map((item) => (
+                  <div class="token-swatch">
+                    <span
+                      class="token-swatch__chip"
+                      style={`background:${item.value};`}
+                    ></span>
+                    <div class="token-swatch__meta">
+                      <strong>{item.name}</strong>
+                      <span>{item.value}</span>
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </GothicFrame>
+
+        <GothicFrame
+          variant="ornate"
+          size="medium"
+          background="none"
+          class="design-card"
+        >
+          <div class="design-card__content">
+            <h3>Typografia</h3>
+            <div class="token-stack">
+              {
+                fontItems.map((item) => (
+                  <div class="token-stack__row">
+                    <strong>{item.name}</strong>
+                    <span>{item.value.join(", ")}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </GothicFrame>
+
+        <GothicFrame
+          variant="ornate"
+          size="medium"
+          background="none"
+          class="design-card"
+        >
+          <div class="design-card__content">
+            <h3>Spacing</h3>
+            <div class="token-stack">
+              {
+                spacingItems.map((item) => (
+                  <div class="token-stack__row">
+                    <strong>{item.name}</strong>
+                    <span>
+                      {item.min}px - {item.max}px
+                    </span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </GothicFrame>
+      </div>
+    </section>
+
+    <section class="design-system-section">
+      <h2 class="design-system-section__title">Decyzje Systemowe</h2>
+      <GothicFrame
+        variant="ornate"
+        size="thick"
+        background="none"
+        class="design-card design-card--wide"
+      >
+        <div class="design-card__content">
+          <ul class="decision-list">
+            {
+              systemDecisions.map((decision) => (
+                <li class="decision-list__item">{decision}</li>
+              ))
+            }
+          </ul>
+          <div class="design-system-links">
+            <a href="/">Homepage Reference</a>
+            <a href="/shop">Canonical Shop</a>
+            <a href="/collections">Collections Loader</a>
+          </div>
+        </div>
+      </GothicFrame>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .design-system-page {
+    min-height: 100vh;
+    padding: var(--space-l);
+    display: grid;
+    gap: var(--space-l);
+    color: var(--color-highlight-bone, #f5f5dc);
+  }
+
+  .design-system-hero {
+    display: grid;
+    grid-template-columns: minmax(180px, 240px) 1fr;
+    gap: var(--space-l);
+    align-items: center;
+  }
+
+  .design-system-hero__logo {
+    display: flex;
+    justify-content: center;
+  }
+
+  .design-system-eyebrow {
+    margin: 0 0 var(--space-2xs) 0;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    opacity: 0.75;
+  }
+
+  .design-system-title {
+    margin: 0;
+    font-size: clamp(2.4rem, 6vw, 4.4rem);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-shadow:
+      0 0 20px rgba(255, 153, 0, 0.25),
+      2px 2px 0 rgba(10, 10, 10, 0.9);
+  }
+
+  .design-system-intro {
+    margin: var(--space-xs) 0 0 0;
+    max-width: 65ch;
+    line-height: 1.6;
+    color: rgba(245, 245, 220, 0.9);
+  }
+
+  .design-system-section {
+    display: grid;
+    gap: var(--space-m);
+  }
+
+  .design-system-section__title {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: clamp(1.1rem, 2vw, 1.6rem);
+  }
+
+  .design-system-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-m);
+  }
+
+  .design-system-grid--tokens {
+    align-items: start;
+  }
+
+  .design-card {
+    height: 100%;
+  }
+
+  .design-card--wide {
+    max-width: 1100px;
+  }
+
+  .design-card__content {
+    padding: var(--space-m);
+    display: grid;
+    gap: var(--space-s);
+  }
+
+  .design-card__content h3 {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .design-card__content p {
+    margin: 0;
+    color: rgba(245, 245, 220, 0.82);
+    line-height: 1.6;
+  }
+
+  .design-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    align-items: center;
+  }
+
+  .design-card__frame-demo {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding-top: var(--space-xs);
+    border-top: 1px solid rgba(245, 245, 220, 0.1);
+    color: rgba(245, 245, 220, 0.72);
+  }
+
+  .design-card__logo-preview {
+    display: flex;
+    justify-content: center;
+  }
+
+  .token-swatches {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .token-swatch {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: var(--space-xs);
+    align-items: center;
+  }
+
+  .token-swatch__chip {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid rgba(245, 245, 220, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(10, 10, 10, 0.35);
+  }
+
+  .token-swatch__meta {
+    display: grid;
+    gap: 2px;
+  }
+
+  .token-swatch__meta strong,
+  .token-stack__row strong {
+    font-weight: 700;
+  }
+
+  .token-swatch__meta span,
+  .token-stack__row span {
+    color: rgba(245, 245, 220, 0.72);
+    font-size: 0.92rem;
+  }
+
+  .token-stack {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .token-stack__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding-bottom: var(--space-2xs);
+    border-bottom: 1px solid rgba(245, 245, 220, 0.08);
+  }
+
+  .decision-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: var(--space-xs);
+    line-height: 1.55;
+  }
+
+  .design-system-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    padding-top: var(--space-xs);
+    border-top: 1px solid rgba(245, 245, 220, 0.1);
+  }
+
+  .design-system-links a {
+    color: var(--color-metal-antique-gold, #d4af37);
+    text-decoration: none;
+  }
+
+  .design-system-links a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 960px) {
+    .design-system-hero,
+    .design-system-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

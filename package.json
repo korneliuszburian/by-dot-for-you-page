@@ -11,6 +11,7 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "verify:commerce-data-source": "node scripts/verify-commerce-data-source.mjs",
+    "verify:design-system-page": "node scripts/verify-design-system-page.mjs",
     "verify:tailwind-utility-migration": "node scripts/verify-tailwind-utility-migration.mjs",
     "verify:shell-media": "node scripts/verify-shell-media-paths.mjs",
     "verify:route-ownership": "node scripts/verify-route-ownership.mjs",
