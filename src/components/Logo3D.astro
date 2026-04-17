@@ -297,12 +297,13 @@ const currentSizeClass = sizeClasses[size] || sizeClasses.medium;
     });
 
     // --- ANIMATION LOOP ---
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
 
-    function animate() {
+    function animate(timestamp?: number) {
       requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      const time = clock.getElapsedTime();
+      timer.update(timestamp);
+      const delta = timer.getDelta();
+      const time = timer.getElapsed();
 
       // 1. Calculate Targets
       const targetPixel = isHovered ? CONFIG.pixelHover : CONFIG.pixelIdle;
