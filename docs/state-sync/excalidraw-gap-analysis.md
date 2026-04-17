@@ -12,18 +12,16 @@ This file classifies only themes that are visible in the extracted Excalidraw co
 
 ## Partial
 
+- `/items`: the board names `Przedmioty`, and the repo has a stub route, but the route is not implemented beyond the shared shell.
 - Lookbook: the board calls for a brand-photo / lookbook surface, but `/lookbook` is currently only a stub shell.
 - Photos: the board calls for an artistic photo stream, but `/photos` is currently only a stub shell.
 - Collections flow: the board mentions `Nowa Kolekcja` and `Wczytaj Kolekcje`, but `/collections` is only a stub and the load-collection flow is not implemented.
-- Product presentation details: the board references photo preview, item info, and a generated size-chart treatment; the live detail page covers the theme, but the exact visual treatment is not aligned from the audited docs alone.
+- Product presentation details: the board references photo preview, item info, and a size-chart image treatment; the live product detail page does not show a dedicated size-chart graphic in the audited docs.
 
 ## Missing
 
 - `For You` / movement section: the board describes a separate narrative or cutscene-style section, and there is no active route or implementation for it.
-- A dedicated lookbook layout: the board implies a true gallery composition, not just a placeholder page.
-- A dedicated photos layout: the board implies a flowing image-led section, not just a placeholder page.
-- A collection browser / portfolio surface: the board describes a collection-like archive for past items, and the current `/collections` route does not provide it.
-- A published design-system page: `/design-system` exists, but the audited route is blank.
+- An implemented design-system page or surface: `/design-system` exists locally, but the audited route is blank.
 
 ## Needs Decisions
 
