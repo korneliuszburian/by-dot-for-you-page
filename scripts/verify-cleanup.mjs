@@ -137,6 +137,32 @@ const verifyTailwindIntegrationRemoval = async () => {
   pushFailures("tailwind-integration-removal", failures);
 };
 
+const verifyContentConfigMigration = async () => {
+  const failures = [];
+
+  try {
+    await access(path.join(root, "src", "content.config.ts"));
+  } catch {
+    failures.push("Missing src/content.config.ts Astro 6 content collections config.");
+  }
+
+  try {
+    await access(path.join(root, "src", "content", "config.ts"));
+    failures.push("Legacy src/content/config.ts still exists.");
+  } catch {
+    // expected
+  }
+
+  try {
+    await access(path.join(root, "src", "content", "config.ts.backup"));
+    failures.push("Legacy src/content/config.ts.backup still exists.");
+  } catch {
+    // expected
+  }
+
+  pushFailures("content-config-migration", failures);
+};
+
 const verifyDesignSystemPage = async () => {
   const designSystemHtml = await readFile(
     path.join(distDir, "design-system", "index.html"),
@@ -461,6 +487,7 @@ const verifyTailwindMigration = async () => {
 
 await verifyCommerceDataSource();
 await verifyTailwindIntegrationRemoval();
+await verifyContentConfigMigration();
 await verifyDesignSystemPage();
 await verifyRouteOwnership();
 await verifyCollectionHandoff();

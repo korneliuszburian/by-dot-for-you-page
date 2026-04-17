@@ -1,8 +1,10 @@
-import { z, defineCollection } from 'astro:content';
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
 
 const productSchema = z.object({
   id: z.number(),
-  status: z.enum(['Available', 'Unavailable']),
+  status: z.enum(["Available", "Unavailable"]),
   product_name: z.string(),
   size_eu: z.string(),
   collection: z.string(),
@@ -16,7 +18,7 @@ const productSchema = z.object({
 
 export const collections = {
   products: defineCollection({
+    loader: glob({ pattern: "**/*.md", base: "./src/content/products" }),
     schema: productSchema,
-    type: 'content'
   }),
 };

@@ -64,7 +64,7 @@ export async function getProductById(id: number): Promise<Product | undefined> {
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   const products = await getCollection('products');
-  return products.find(product => product.slug === slug);
+  return products.find(product => product.id === slug);
 }
 
 export async function getProductsByType(type: string): Promise<Product[]> {
@@ -199,7 +199,7 @@ export async function getStatusCounts(): Promise<Record<string, number>> {
 
 // Utility function to generate product URLs
 export function getProductUrl(product: Product): string {
-  return `/shop/${product.slug}`;
+  return `/shop/${product.id}`;
 }
 
 export function getProductImageUrl(product: Product, imageIndex: number = 0): string {

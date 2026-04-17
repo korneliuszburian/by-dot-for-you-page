@@ -1,10 +1,10 @@
 {
-  "name": "astro-cube-boilerplate",
+  "name": "by-dot-for-you-page",
   "type": "module",
   "version": "0.0.1",
-  "author": "Frank Stallone <frank@stallone.dev>",
-  "description": "A simple Astro boilerplate with CUBE CSS and TailwindCSS",
-  "homepage": "https://github.com/frankstallone/astro-cube-boilerplate",
+  "author": "Korneliusz Burian",
+  "description": "Dot For You storefront built with Astro.",
+  "homepage": "https://github.com/korneliuszburian/by-dot-for-you-page",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -16,10 +16,10 @@
   "dependencies": {
     "@astrojs/check": "^0.9.8",
     "@astrojs/partytown": "^2.1.7",
-    "@astrojs/react": "^4.4.2",
+    "@astrojs/react": "^5.0.3",
     "@astrojs/sitemap": "^3.7.2",
     "@types/three": "^0.184.0",
-    "astro": "^5.18.1",
+    "astro": "^6.1.7",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "slugify": "^1.6.9",
