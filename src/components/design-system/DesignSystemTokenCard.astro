@@ -1,0 +1,117 @@
+---
+import DesignSystemCard from "./DesignSystemCard.astro";
+import type {
+  ColorTokenItem,
+  FontTokenItem,
+  SpacingTokenItem,
+  TokenCardConfig,
+} from "../../utils/design-system/reference-content";
+
+export interface Props extends TokenCardConfig {}
+
+const { kind, title, variant, size, items } = Astro.props;
+
+const colorItems = kind === "colors" ? (items as ColorTokenItem[]) : [];
+const fontItems = kind === "fonts" ? (items as FontTokenItem[]) : [];
+const spacingItems = kind === "spacing" ? (items as SpacingTokenItem[]) : [];
+---
+
+<DesignSystemCard title={title} variant={variant} size={size}>
+  {
+    kind === "colors" && (
+      <div class="token-swatches">
+        {colorItems.map((item) => (
+          <div class="token-swatch">
+            <span
+              class="token-swatch__chip"
+              style={`background:${item.value};`}
+            />
+            <div class="token-swatch__meta">
+              <strong>{item.name}</strong>
+              <span>{item.value}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    kind === "fonts" && (
+      <div class="token-stack">
+        {fontItems.map((item) => (
+          <div class="token-stack__row">
+            <strong>{item.name}</strong>
+            <span>{item.value.join(", ")}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    kind === "spacing" && (
+      <div class="token-stack">
+        {spacingItems.map((item) => (
+          <div class="token-stack__row">
+            <strong>{item.name}</strong>
+            <span>
+              {item.min}px - {item.max}px
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+</DesignSystemCard>
+
+<style>
+  .token-swatches {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .token-swatch {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: var(--space-xs);
+    align-items: center;
+  }
+
+  .token-swatch__chip {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid rgba(245, 245, 220, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(10, 10, 10, 0.35);
+  }
+
+  .token-swatch__meta {
+    display: grid;
+    gap: 2px;
+  }
+
+  .token-swatch__meta strong,
+  .token-stack__row strong {
+    font-weight: 700;
+  }
+
+  .token-swatch__meta span,
+  .token-stack__row span {
+    color: rgba(245, 245, 220, 0.72);
+    font-size: 0.92rem;
+  }
+
+  .token-stack {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .token-stack__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding-bottom: var(--space-2xs);
+    border-bottom: 1px solid rgba(245, 245, 220, 0.08);
+  }
+</style>

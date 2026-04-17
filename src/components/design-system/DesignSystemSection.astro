@@ -1,0 +1,26 @@
+---
+export interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<section class="design-system-section">
+  <h2 class="design-system-section__title">{title}</h2>
+  <slot />
+</section>
+
+<style>
+  .design-system-section {
+    display: grid;
+    gap: var(--space-m);
+  }
+
+  .design-system-section__title {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: clamp(1.1rem, 2vw, 1.6rem);
+  }
+</style>

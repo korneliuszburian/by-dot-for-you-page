@@ -1,0 +1,31 @@
+---
+export interface Props {
+  tokens?: boolean;
+}
+
+const { tokens = false } = Astro.props;
+---
+
+<div
+  class:list={["design-system-grid", tokens && "design-system-grid--tokens"]}
+>
+  <slot />
+</div>
+
+<style>
+  .design-system-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-m);
+  }
+
+  .design-system-grid--tokens {
+    align-items: start;
+  }
+
+  @media (max-width: 960px) {
+    .design-system-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

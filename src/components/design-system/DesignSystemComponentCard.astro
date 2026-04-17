@@ -1,0 +1,70 @@
+---
+import GothicButton from "../GothicButton.astro";
+import Logo3D from "../Logo3D.astro";
+import DesignSystemCard from "./DesignSystemCard.astro";
+import type { ComponentCardConfig } from "../../utils/design-system/reference-content";
+
+export interface Props extends ComponentCardConfig {}
+
+const { kind, title, description, variant, size } = Astro.props;
+---
+
+<DesignSystemCard
+  title={title}
+  description={description}
+  variant={variant}
+  size={size}
+>
+  {
+    kind === "buttons" && (
+      <div class="design-card__actions">
+        <GothicButton variant="button2" size="large">
+          Primary
+        </GothicButton>
+        <GothicButton variant="button5" size="medium">
+          Secondary
+        </GothicButton>
+      </div>
+    )
+  }
+
+  {
+    kind === "frame" && (
+      <div class="design-card__frame-demo">
+        <span>Ornate / Old</span>
+        <span>Thin to Thick</span>
+      </div>
+    )
+  }
+
+  {
+    kind === "logo" && (
+      <div class="design-card__logo-preview">
+        <Logo3D size="small" />
+      </div>
+    )
+  }
+</DesignSystemCard>
+
+<style>
+  .design-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    align-items: center;
+  }
+
+  .design-card__frame-demo {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding-top: var(--space-xs);
+    border-top: 1px solid rgba(245, 245, 220, 0.1);
+    color: rgba(245, 245, 220, 0.72);
+  }
+
+  .design-card__logo-preview {
+    display: flex;
+    justify-content: center;
+  }
+</style>

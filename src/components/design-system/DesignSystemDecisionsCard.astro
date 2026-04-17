@@ -1,0 +1,51 @@
+---
+import DesignSystemCard from "./DesignSystemCard.astro";
+import type { ReferenceLink } from "../../utils/design-system/reference-content";
+
+export interface Props {
+  decisions: string[];
+  links: ReferenceLink[];
+}
+
+const { decisions, links } = Astro.props;
+---
+
+<DesignSystemCard variant="ornate" size="thick" wide>
+  <ul class="decision-list">
+    {
+      decisions.map((decision) => (
+        <li class="decision-list__item">{decision}</li>
+      ))
+    }
+  </ul>
+  <div class="design-system-links">
+    {links.map((link) => <a href={link.href}>{link.label}</a>)}
+  </div>
+</DesignSystemCard>
+
+<style>
+  .decision-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: var(--space-xs);
+    line-height: 1.55;
+  }
+
+  .design-system-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    padding-top: var(--space-xs);
+    border-top: 1px solid rgba(245, 245, 220, 0.1);
+  }
+
+  .design-system-links a {
+    color: var(--color-metal-antique-gold, #d4af37);
+    text-decoration: none;
+  }
+
+  .design-system-links a:hover {
+    text-decoration: underline;
+  }
+</style>

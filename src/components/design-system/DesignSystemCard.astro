@@ -1,0 +1,70 @@
+---
+import GothicFrame from "../GothicFrame.astro";
+import type {
+  FrameSize,
+  FrameVariant,
+} from "../../utils/design-system/reference-content";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  variant?: FrameVariant;
+  size?: FrameSize;
+  wide?: boolean;
+  class?: string;
+}
+
+const {
+  title,
+  description,
+  variant = "ornate",
+  size = "medium",
+  wide = false,
+  class: className = "",
+} = Astro.props;
+
+const frameClasses = ["design-card", wide && "design-card--wide", className]
+  .filter(Boolean)
+  .join(" ");
+---
+
+<GothicFrame
+  variant={variant}
+  size={size}
+  background="none"
+  class={frameClasses}
+>
+  <div class="design-card__content">
+    {title && <h3>{title}</h3>}
+    {description && <p>{description}</p>}
+    <slot />
+  </div>
+</GothicFrame>
+
+<style>
+  .design-card {
+    height: 100%;
+  }
+
+  .design-card--wide {
+    max-width: 1100px;
+  }
+
+  .design-card__content {
+    padding: var(--space-m);
+    display: grid;
+    gap: var(--space-s);
+  }
+
+  .design-card__content h3 {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .design-card__content p {
+    margin: 0;
+    color: rgba(245, 245, 220, 0.82);
+    line-height: 1.6;
+  }
+</style>
