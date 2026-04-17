@@ -86,6 +86,57 @@ const verifyCommerceDataSource = async () => {
   pushFailures("commerce-data-source", failures);
 };
 
+const verifyTailwindIntegrationRemoval = async () => {
+  const failures = [];
+  const astroConfig = await readFile(path.join(root, "astro.config.mjs"), "utf8");
+  const packageJson = await readFile(path.join(root, "package.json"), "utf8");
+  const postcssConfig = await readFile(path.join(root, "postcss.config.cjs"), "utf8");
+  const gridCss = await readFile(path.join(root, "src", "css", "components", "grid.css"), "utf8");
+  const emittedCssFiles = (await readdir(path.join(distDir, "_astro"))).filter((file) =>
+    file.endsWith(".css"),
+  );
+
+  if (astroConfig.includes("@astrojs/tailwind")) {
+    failures.push("astro.config.mjs still references @astrojs/tailwind.");
+  }
+
+  if (packageJson.includes('"@astrojs/tailwind"')) {
+    failures.push("package.json still depends on @astrojs/tailwind.");
+  }
+
+  if (!packageJson.includes('"autoprefixer"')) {
+    failures.push("package.json no longer provides autoprefixer for the PostCSS pipeline.");
+  }
+
+  if (!postcssConfig.includes("require('autoprefixer')")) {
+    failures.push("postcss.config.cjs does not run autoprefixer.");
+  }
+
+  if (gridCss.includes("@media screen(")) {
+    failures.push("src/css/components/grid.css still uses Tailwind screen() media helpers.");
+  }
+
+  if (emittedCssFiles.length === 0) {
+    failures.push("dist/_astro does not contain emitted CSS assets to verify the PostCSS/Tailwind pipeline.");
+  } else {
+    const emittedCss = (
+      await Promise.all(
+        emittedCssFiles.map((file) => readFile(path.join(distDir, "_astro", file), "utf8")),
+      )
+    ).join("\n");
+
+    if (!emittedCss.includes("flow-space-l")) {
+      failures.push("Built CSS no longer includes generated Tailwind compatibility utility flow-space-l.");
+    }
+
+    if (!emittedCss.includes("--color-highlight-bone")) {
+      failures.push("Built CSS no longer includes generated design-token custom properties.");
+    }
+  }
+
+  pushFailures("tailwind-integration-removal", failures);
+};
+
 const verifyDesignSystemPage = async () => {
   const designSystemHtml = await readFile(
     path.join(distDir, "design-system", "index.html"),
@@ -409,6 +460,7 @@ const verifyTailwindMigration = async () => {
 };
 
 await verifyCommerceDataSource();
+await verifyTailwindIntegrationRemoval();
 await verifyDesignSystemPage();
 await verifyRouteOwnership();
 await verifyCollectionHandoff();
