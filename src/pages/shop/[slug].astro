@@ -3,6 +3,7 @@ import productsData from "../../../public/dataset/output.json";
 import Layout from "../../layouts/Layout.astro";
 import GothicButton from "../../components/GothicButton.astro";
 import GothicFrame from "../../components/GothicFrame.astro";
+import { shellPosterUrl, shellVideoUrl } from "../../utils/shell-media";
 import Logo3D from "../../components/Logo3D.astro";
 import { Image } from "astro:assets";
 import type { GetStaticPaths } from "astro";
@@ -308,12 +309,9 @@ const features = Array.isArray(productData.website_des)
             loop
             muted
             playsinline
-            poster="/assets/videos/testing-video-poster-02.png"
+            poster={shellPosterUrl}
           >
-            <source
-              src="/assets/videos/testing-video-02.mp4"
-              type="video/mp4"
-            />
+            <source src={shellVideoUrl} type="video/mp4" />
           </video>
 
           <div class="contact-popup__inner">

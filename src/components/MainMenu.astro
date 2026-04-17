@@ -7,6 +7,7 @@
 import GothicFrame from "./GothicFrame.astro";
 import GothicButton from "./GothicButton.astro";
 import Logo3D from "./Logo3D.astro";
+import { shellPosterUrl, shellVideoUrl } from "../utils/shell-media";
 
 // Polish navigation structure
 const menuItems = [
@@ -47,7 +48,10 @@ const menuItems = [
 ---
 
 <div class="main-menu">
-  <div class="main-menu__page-background"></div>
+  <div
+    class="main-menu__page-background"
+    style={`--main-menu-poster: url(${shellPosterUrl});`}
+  ></div>
 
   <Logo3D class="main-menu__logo" />
 
@@ -62,13 +66,13 @@ const menuItems = [
         <video
           id="main-menu-video"
           class="main-menu__frame-video"
-          poster="/assets/videos/testing-video-poster-02.png"
+          poster={shellPosterUrl}
           preload="metadata"
           loop
           muted
           playsinline
         >
-          <source src="/assets/videos/testing-video-02.mp4" type="video/mp4" />
+          <source src={shellVideoUrl} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
@@ -115,7 +119,7 @@ const menuItems = [
   }
 
   .main-menu__page-background {
-    background-image: url("/assets/videos/testing-video-poster-02.png");
+    background-image: var(--main-menu-poster);
     position: absolute;
     top: 0;
     left: 0;

@@ -1,6 +1,7 @@
 ---
 import "../css/global.css";
 import { ClientRouter } from "astro:transitions";
+import { shellVideoUrl } from "../utils/shell-media";
 
 interface Props {
   title: string;
@@ -43,7 +44,7 @@ const {
       playsinline
       transition:persist
     >
-      <source src="/assets/videos/testing-video-02.mp4" type="video/mp4" />
+      <source src={shellVideoUrl} type="video/mp4" />
       Your browser does not support the video tag.
     </video>
     <slot />
