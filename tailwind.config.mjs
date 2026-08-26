@@ -79,7 +79,7 @@ export default {
 
   plugins: [
     // Generates custom property values from tailwind config
-    plugin(function ({ addComponents, config }) {
+    plugin(function ({ addBase, config }) {
       let result = "";
 
       const currentConfig = config();
@@ -105,7 +105,7 @@ export default {
         });
       });
 
-      addComponents({
+      addBase({
         ":root": postcssJs.objectify(postcss.parse(result)),
       });
     }),

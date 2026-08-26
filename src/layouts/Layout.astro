@@ -1,7 +1,7 @@
 ---
 import "../css/global.css";
 import { ClientRouter } from "astro:transitions";
-import { shellVideoUrl } from "../utils/shell-media";
+import { shellPosterUrl, shellVideoUrl } from "../utils/shell-media";
 import { siteMetadata } from "../utils/site-metadata";
 
 interface Props {
@@ -54,6 +54,8 @@ const canonicalUrl = Astro.site
       muted
       loop
       playsinline
+      poster={shellPosterUrl}
+      preload="auto"
       transition:persist
     >
       <source src={shellVideoUrl} type="video/mp4" />
@@ -62,7 +64,7 @@ const canonicalUrl = Astro.site
     <slot />
     <style define:vars={{ backgroundVideoFilter }}>
       .background__video {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         width: 100%;

@@ -1,5 +1,12 @@
 # Agent Instructions
 
+## Curated project context
+
+Before planning, diagnosing, designing or implementing any repository work,
+read docs/state-sync/INDEX.md in full. It is the single curated context
+entrypoint: follow only the task branch it routes to, and do not treat every
+document or generated image in docs/state-sync as current truth.
+
 This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
 
 ## Quick Reference

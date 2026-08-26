@@ -60,11 +60,24 @@ export const routeCatalog = {
 } as const satisfies Record<string, MenuRoute>;
 
 export const mainMenuItems = [
-  routeCatalog.newCollection,
-  routeCatalog.collections,
-  routeCatalog.shop,
+  { ...routeCatalog.shop, title: "SHOP" },
+  { ...routeCatalog.collections, title: "COLLECTIONS" },
   routeCatalog.lookbook,
-  routeCatalog.photos,
+  { ...routeCatalog.photos, title: "PHOTOS", status: "active" as const },
+  {
+    key: "about",
+    title: "ABOUT",
+    pageTitle: "ABOUT",
+    status: "disabled" as const,
+    owner: "planned brand story surface",
+  },
+  {
+    key: "contact",
+    title: "CONTACT",
+    pageTitle: "CONTACT",
+    status: "disabled" as const,
+    owner: "planned contact surface",
+  },
 ];
 
 export const canonicalCommerceRoute = routeCatalog.shop.route;

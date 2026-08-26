@@ -49,38 +49,56 @@ const collectCandidateTokens = (content) => {
     }
   }
 
-  return candidateStrings.flatMap((candidate) => candidate.split(/\s+/)).filter(Boolean);
+  return candidateStrings
+    .flatMap((candidate) => candidate.split(/\s+/))
+    .filter(Boolean);
 };
 
 const verifyCommerceDataSource = async () => {
   const failures = [];
   const helperPath = path.join(root, "src", "utils", "products-dataset.ts");
   const shopPagePath = path.join(root, "src", "pages", "shop.astro");
-  const productPagePath = path.join(root, "src", "pages", "shop", "[slug].astro");
+  const productPagePath = path.join(
+    root,
+    "src",
+    "pages",
+    "shop",
+    "[slug].astro",
+  );
 
   try {
     await access(helperPath);
   } catch {
-    failures.push("Missing src/utils/products-dataset.ts canonical runtime data helper.");
+    failures.push(
+      "Missing src/utils/products-dataset.ts canonical runtime data helper.",
+    );
   }
 
   const shopPage = await readFile(shopPagePath, "utf8");
   const productPage = await readFile(productPagePath, "utf8");
 
   if (shopPage.includes("public/dataset/output.json")) {
-    failures.push("src/pages/shop.astro still imports public/dataset/output.json directly.");
+    failures.push(
+      "src/pages/shop.astro still imports public/dataset/output.json directly.",
+    );
   }
 
   if (productPage.includes("public/dataset/output.json")) {
-    failures.push("src/pages/shop/[slug].astro still imports public/dataset/output.json directly.");
+    failures.push(
+      "src/pages/shop/[slug].astro still imports public/dataset/output.json directly.",
+    );
   }
 
   if (!shopPage.includes("../utils/products-dataset")) {
-    failures.push("src/pages/shop.astro does not import the canonical products-dataset helper.");
+    failures.push(
+      "src/pages/shop.astro does not import the canonical products-dataset helper.",
+    );
   }
 
   if (!productPage.includes("../../utils/products-dataset")) {
-    failures.push("src/pages/shop/[slug].astro does not import the canonical products-dataset helper.");
+    failures.push(
+      "src/pages/shop/[slug].astro does not import the canonical products-dataset helper.",
+    );
   }
 
   pushFailures("commerce-data-source", failures);
@@ -88,12 +106,21 @@ const verifyCommerceDataSource = async () => {
 
 const verifyTailwindIntegrationRemoval = async () => {
   const failures = [];
-  const astroConfig = await readFile(path.join(root, "astro.config.mjs"), "utf8");
+  const astroConfig = await readFile(
+    path.join(root, "astro.config.mjs"),
+    "utf8",
+  );
   const packageJson = await readFile(path.join(root, "package.json"), "utf8");
-  const postcssConfig = await readFile(path.join(root, "postcss.config.cjs"), "utf8");
-  const gridCss = await readFile(path.join(root, "src", "css", "components", "grid.css"), "utf8");
-  const emittedCssFiles = (await readdir(path.join(distDir, "_astro"))).filter((file) =>
-    file.endsWith(".css"),
+  const postcssConfig = await readFile(
+    path.join(root, "postcss.config.cjs"),
+    "utf8",
+  );
+  const gridCss = await readFile(
+    path.join(root, "src", "css", "components", "grid.css"),
+    "utf8",
+  );
+  const emittedCssFiles = (await readdir(path.join(distDir, "_astro"))).filter(
+    (file) => file.endsWith(".css"),
   );
 
   if (astroConfig.includes("@astrojs/tailwind")) {
@@ -105,32 +132,44 @@ const verifyTailwindIntegrationRemoval = async () => {
   }
 
   if (!packageJson.includes('"autoprefixer"')) {
-    failures.push("package.json no longer provides autoprefixer for the PostCSS pipeline.");
+    failures.push(
+      "package.json no longer provides autoprefixer for the PostCSS pipeline.",
+    );
   }
 
-  if (!postcssConfig.includes("require('autoprefixer')")) {
+  if (!/require\(["']autoprefixer["']\)/.test(postcssConfig)) {
     failures.push("postcss.config.cjs does not run autoprefixer.");
   }
 
   if (gridCss.includes("@media screen(")) {
-    failures.push("src/css/components/grid.css still uses Tailwind screen() media helpers.");
+    failures.push(
+      "src/css/components/grid.css still uses Tailwind screen() media helpers.",
+    );
   }
 
   if (emittedCssFiles.length === 0) {
-    failures.push("dist/_astro does not contain emitted CSS assets to verify the PostCSS/Tailwind pipeline.");
+    failures.push(
+      "dist/_astro does not contain emitted CSS assets to verify the PostCSS/Tailwind pipeline.",
+    );
   } else {
     const emittedCss = (
       await Promise.all(
-        emittedCssFiles.map((file) => readFile(path.join(distDir, "_astro", file), "utf8")),
+        emittedCssFiles.map((file) =>
+          readFile(path.join(distDir, "_astro", file), "utf8"),
+        ),
       )
     ).join("\n");
 
-    if (!emittedCss.includes("flow-space-l")) {
-      failures.push("Built CSS no longer includes generated Tailwind compatibility utility flow-space-l.");
+    if (!emittedCss.includes(".flow")) {
+      failures.push(
+        "Built CSS no longer includes the canonical flow composition.",
+      );
     }
 
     if (!emittedCss.includes("--color-highlight-bone")) {
-      failures.push("Built CSS no longer includes generated design-token custom properties.");
+      failures.push(
+        "Built CSS no longer includes generated design-token custom properties.",
+      );
     }
   }
 
@@ -143,7 +182,9 @@ const verifyContentConfigMigration = async () => {
   try {
     await access(path.join(root, "src", "content.config.ts"));
   } catch {
-    failures.push("Missing src/content.config.ts Astro 6 content collections config.");
+    failures.push(
+      "Missing src/content.config.ts Astro 6 content collections config.",
+    );
   }
 
   try {
@@ -165,15 +206,27 @@ const verifyContentConfigMigration = async () => {
 
 const verifySiteMetadataOwnership = async () => {
   const failures = [];
-  const astroConfig = await readFile(path.join(root, "astro.config.mjs"), "utf8");
-  const layoutSource = await readFile(path.join(root, "src", "layouts", "Layout.astro"), "utf8");
+  const astroConfig = await readFile(
+    path.join(root, "astro.config.mjs"),
+    "utf8",
+  );
+  const layoutSource = await readFile(
+    path.join(root, "src", "layouts", "Layout.astro"),
+    "utf8",
+  );
 
-  if (!astroConfig.includes("process.env.SITE_URL ?? process.env.PUBLIC_SITE_URL")) {
-    failures.push("astro.config.mjs does not source the canonical site URL from SITE_URL/PUBLIC_SITE_URL.");
+  if (
+    !astroConfig.includes("process.env.SITE_URL ?? process.env.PUBLIC_SITE_URL")
+  ) {
+    failures.push(
+      "astro.config.mjs does not source the canonical site URL from SITE_URL/PUBLIC_SITE_URL.",
+    );
   }
 
   if (!layoutSource.includes("../utils/site-metadata")) {
-    failures.push("src/layouts/Layout.astro does not import canonical site metadata ownership.");
+    failures.push(
+      "src/layouts/Layout.astro does not import canonical site metadata ownership.",
+    );
   }
 
   if (!layoutSource.includes('rel="canonical"')) {
@@ -213,9 +266,18 @@ const verifyDesignSystemPage = async () => {
 const verifyRouteOwnership = async () => {
   const failures = [];
   const homepageHtml = await readFile(path.join(distDir, "index.html"), "utf8");
-  const itemsHtml = await readFile(path.join(distDir, "items", "index.html"), "utf8");
-  const lookbookHtml = await readFile(path.join(distDir, "lookbook", "index.html"), "utf8");
-  const photosHtml = await readFile(path.join(distDir, "photos", "index.html"), "utf8");
+  const itemsHtml = await readFile(
+    path.join(distDir, "items", "index.html"),
+    "utf8",
+  );
+  const lookbookHtml = await readFile(
+    path.join(distDir, "lookbook", "index.html"),
+    "utf8",
+  );
+  const photosHtml = await readFile(
+    path.join(distDir, "photos", "index.html"),
+    "utf8",
+  );
   const collectionsHtml = await readFile(
     path.join(distDir, "collections", "index.html"),
     "utf8",
@@ -223,23 +285,32 @@ const verifyRouteOwnership = async () => {
 
   const shopHrefCount = homepageHtml.split('href="/shop"').length - 1;
 
-  if (!homepageHtml.includes("PRZEDMIOTY")) {
-    failures.push("Homepage menu is missing the canonical PRZEDMIOTY label.");
+  if (!homepageHtml.includes("SHOP")) {
+    failures.push("Homepage menu is missing the approved SHOP label.");
   }
 
   if (homepageHtml.includes("SKLEP")) {
-    failures.push("Homepage menu still exposes duplicate SKLEP label for the shop listing.");
+    failures.push(
+      "Homepage menu still exposes duplicate SKLEP label for the shop listing.",
+    );
   }
 
   if (homepageHtml.includes('href="/items"')) {
-    failures.push("Homepage menu still links to /items instead of the canonical /shop route.");
+    failures.push(
+      "Homepage menu still links to /items instead of the canonical /shop route.",
+    );
   }
 
   if (shopHrefCount !== 1) {
-    failures.push(`Homepage menu should expose exactly one /shop entry, found ${shopHrefCount}.`);
+    failures.push(
+      `Homepage menu should expose exactly one /shop entry, found ${shopHrefCount}.`,
+    );
   }
 
-  if (!itemsHtml.includes('http-equiv="refresh"') || !itemsHtml.includes("url=/shop")) {
+  if (
+    !itemsHtml.includes('http-equiv="refresh"') ||
+    !itemsHtml.includes("url=/shop")
+  ) {
     failures.push("/items does not redirect to the canonical /shop route.");
   }
 
@@ -264,8 +335,14 @@ const verifyCollectionHandoff = async () => {
     path.join(distDir, "collections", "index.html"),
     "utf8",
   );
-  const shopHtml = await readFile(path.join(distDir, "shop", "index.html"), "utf8");
-  const shopSource = await readFile(path.join(root, "src", "pages", "shop.astro"), "utf8");
+  const shopHtml = await readFile(
+    path.join(distDir, "shop", "index.html"),
+    "utf8",
+  );
+  const shopSource = await readFile(
+    path.join(root, "src", "pages", "shop.astro"),
+    "utf8",
+  );
   const dataset = JSON.parse(
     await readFile(path.join(root, "public", "dataset", "output.json"), "utf8"),
   );
@@ -284,7 +361,9 @@ const verifyCollectionHandoff = async () => {
     }
 
     if (!collectionsHtml.includes(collectionName)) {
-      failures.push(`/collections is missing collection label "${collectionName}".`);
+      failures.push(
+        `/collections is missing collection label "${collectionName}".`,
+      );
     }
 
     if (!collectionsHtml.includes(`${collectionCount} products`)) {
@@ -294,24 +373,36 @@ const verifyCollectionHandoff = async () => {
     }
 
     if (!shopHtml.includes(`data-collection-filter="${collectionName}"`)) {
-      failures.push(`/shop does not emit a filter control for collection "${collectionName}".`);
+      failures.push(
+        `/shop does not emit a filter control for collection "${collectionName}".`,
+      );
     }
   }
 
   if (!shopSource.includes("Collection:")) {
-    failures.push("src/pages/shop.astro does not expose a collection filter group.");
+    failures.push(
+      "src/pages/shop.astro does not expose a collection filter group.",
+    );
   }
 
   if (!shopSource.includes("URLSearchParams")) {
-    failures.push("src/pages/shop.astro does not read query params for collection handoff.");
+    failures.push(
+      "src/pages/shop.astro does not read query params for collection handoff.",
+    );
   }
 
   if (!shopSource.includes("data-collection-filter")) {
-    failures.push("src/pages/shop.astro does not mark collection filter controls for runtime handoff.");
+    failures.push(
+      "src/pages/shop.astro does not mark collection filter controls for runtime handoff.",
+    );
   }
 
-  if (!shopSource.includes("document.documentElement.dataset.collectionFilter")) {
-    failures.push("src/pages/shop.astro does not pre-seed collection state on the document root.");
+  if (
+    !shopSource.includes("document.documentElement.dataset.collectionFilter")
+  ) {
+    failures.push(
+      "src/pages/shop.astro does not pre-seed collection state on the document root.",
+    );
   }
 
   pushFailures("collection-handoff", failures);
@@ -326,7 +417,9 @@ const verifyShellMedia = async () => {
   ];
 
   const emittedAssets = await readdir(astroDir);
-  const emittedVideo = emittedAssets.find((file) => /^testing-video-02\..+\.mp4$/.test(file));
+  const emittedVideo = emittedAssets.find((file) =>
+    /^testing-video-02\..+\.mp4$/.test(file),
+  );
   const emittedPoster = emittedAssets.find((file) =>
     /^testing-video-poster-02\..+\.png$/.test(file),
   );
@@ -336,11 +429,15 @@ const verifyShellMedia = async () => {
   );
 
   if (!emittedVideo) {
-    failures.push("Missing emitted video asset for testing-video-02.mp4 in dist/_astro.");
+    failures.push(
+      "Missing emitted video asset for testing-video-02.mp4 in dist/_astro.",
+    );
   }
 
   if (!emittedPoster) {
-    failures.push("Missing emitted poster asset for testing-video-poster-02.png in dist/_astro.");
+    failures.push(
+      "Missing emitted poster asset for testing-video-poster-02.png in dist/_astro.",
+    );
   }
 
   for (const htmlFile of htmlFiles) {
@@ -348,13 +445,17 @@ const verifyShellMedia = async () => {
 
     for (const rawRuntimePath of rawRuntimePaths) {
       if (html.includes(rawRuntimePath)) {
-        failures.push(`${path.relative(root, htmlFile)} still references ${rawRuntimePath}.`);
+        failures.push(
+          `${path.relative(root, htmlFile)} still references ${rawRuntimePath}.`,
+        );
       }
     }
   }
 
   if (productDetailHtmlFiles.length === 0) {
-    failures.push("Missing built shop detail pages to verify shared shell media coverage.");
+    failures.push(
+      "Missing built shop detail pages to verify shared shell media coverage.",
+    );
   } else {
     for (const productDetailHtml of productDetailHtmlFiles) {
       const html = await readFile(productDetailHtml, "utf8");
@@ -374,18 +475,27 @@ const verifyShellMedia = async () => {
   }
 
   const homepageHtml = await readFile(path.join(distDir, "index.html"), "utf8");
-  const shopListingHtml = await readFile(path.join(distDir, "shop", "index.html"), "utf8");
+  const shopListingHtml = await readFile(
+    path.join(distDir, "shop", "index.html"),
+    "utf8",
+  );
 
   if (emittedVideo && !homepageHtml.includes(`/_astro/${emittedVideo}`)) {
-    failures.push(`dist/index.html does not reference emitted video /_astro/${emittedVideo}.`);
+    failures.push(
+      `dist/index.html does not reference emitted video /_astro/${emittedVideo}.`,
+    );
   }
 
   if (emittedPoster && !homepageHtml.includes(`/_astro/${emittedPoster}`)) {
-    failures.push(`dist/index.html does not reference emitted poster /_astro/${emittedPoster}.`);
+    failures.push(
+      `dist/index.html does not reference emitted poster /_astro/${emittedPoster}.`,
+    );
   }
 
   if (emittedVideo && !shopListingHtml.includes(`/_astro/${emittedVideo}`)) {
-    failures.push(`dist/shop/index.html does not reference emitted video /_astro/${emittedVideo}.`);
+    failures.push(
+      `dist/shop/index.html does not reference emitted video /_astro/${emittedVideo}.`,
+    );
   }
 
   pushFailures("shell-media", failures);
@@ -501,7 +611,9 @@ const verifyTailwindMigration = async () => {
 
     for (const token of file.forbidden) {
       if (candidateTokens.includes(token)) {
-        failures.push(`${path.relative(root, file.path)} still contains forbidden utility token "${token}".`);
+        failures.push(
+          `${path.relative(root, file.path)} still contains forbidden utility token "${token}".`,
+        );
       }
     }
   }
@@ -516,25 +628,34 @@ const verifyLogo3DPerformance = async () => {
     "utf8",
   );
   const builtAssets = await readdir(path.join(distDir, "_astro"));
-  const wrapperChunk = builtAssets.find((file) => file.startsWith("Logo3D.") && file.endsWith(".js"));
-  const runtimeChunk = builtAssets.find((file) =>
-    file.startsWith("logo-3d-runtime.") && file.endsWith(".js"),
+  const wrapperChunk = builtAssets.find(
+    (file) => file.startsWith("Logo3D.") && file.endsWith(".js"),
   );
-  const loaderChunk = builtAssets.find((file) =>
-    file.startsWith("three-loaders.") && file.endsWith(".js"),
+  const runtimeChunk = builtAssets.find(
+    (file) => file.startsWith("logo-3d-runtime.") && file.endsWith(".js"),
   );
-  const postprocessingChunk = builtAssets.find((file) =>
-    file.startsWith("three-postprocessing.") && file.endsWith(".js"),
+  const loaderChunk = builtAssets.find(
+    (file) => file.startsWith("three-loaders.") && file.endsWith(".js"),
+  );
+  const postprocessingChunk = builtAssets.find(
+    (file) => file.startsWith("three-postprocessing.") && file.endsWith(".js"),
   );
   const homepageHtml = await readFile(path.join(distDir, "index.html"), "utf8");
-  const shopHtml = await readFile(path.join(distDir, "shop", "index.html"), "utf8");
+  const shopHtml = await readFile(
+    path.join(distDir, "shop", "index.html"),
+    "utf8",
+  );
 
   if (logoSource.includes('import("three")')) {
-    failures.push("src/components/Logo3D.astro still imports the full three namespace directly.");
+    failures.push(
+      "src/components/Logo3D.astro still imports the full three namespace directly.",
+    );
   }
 
   if (!logoSource.includes("logo-3d-runtime")) {
-    failures.push("src/components/Logo3D.astro does not delegate runtime loading to a dedicated logo-3d-runtime module.");
+    failures.push(
+      "src/components/Logo3D.astro does not delegate runtime loading to a dedicated logo-3d-runtime module.",
+    );
   }
 
   if (!wrapperChunk) {
@@ -545,19 +666,25 @@ const verifyLogo3DPerformance = async () => {
     );
 
     if (wrapperChunkSize > 5_000) {
-      failures.push(`Logo3D wrapper chunk is too large (${wrapperChunkSize} bytes, expected <= 5000).`);
+      failures.push(
+        `Logo3D wrapper chunk is too large (${wrapperChunkSize} bytes, expected <= 5000).`,
+      );
     }
   }
 
   if (!runtimeChunk) {
-    failures.push("dist/_astro is missing the dedicated logo-3d-runtime chunk.");
+    failures.push(
+      "dist/_astro is missing the dedicated logo-3d-runtime chunk.",
+    );
   } else {
     const runtimeChunkSize = Buffer.byteLength(
       await readFile(path.join(distDir, "_astro", runtimeChunk), "utf8"),
     );
 
     if (runtimeChunkSize > 10_000) {
-      failures.push(`logo-3d-runtime chunk is too large (${runtimeChunkSize} bytes, expected <= 10000).`);
+      failures.push(
+        `logo-3d-runtime chunk is too large (${runtimeChunkSize} bytes, expected <= 10000).`,
+      );
     }
   }
 
@@ -566,23 +693,33 @@ const verifyLogo3DPerformance = async () => {
   }
 
   if (!postprocessingChunk) {
-    failures.push("dist/_astro is missing the split three-postprocessing chunk.");
+    failures.push(
+      "dist/_astro is missing the split three-postprocessing chunk.",
+    );
   }
 
   if (homepageHtml.includes("../scripts/logo-3d-runtime")) {
-    failures.push("dist/index.html still references the raw source path ../scripts/logo-3d-runtime.");
+    failures.push(
+      "dist/index.html still references the raw source path ../scripts/logo-3d-runtime.",
+    );
   }
 
   if (shopHtml.includes("../scripts/logo-3d-runtime")) {
-    failures.push("dist/shop/index.html still references the raw source path ../scripts/logo-3d-runtime.");
+    failures.push(
+      "dist/shop/index.html still references the raw source path ../scripts/logo-3d-runtime.",
+    );
   }
 
-  if (wrapperChunk && !homepageHtml.includes(`/_astro/${wrapperChunk}`)) {
-    failures.push(`dist/index.html does not load the emitted Logo3D wrapper chunk /_astro/${wrapperChunk}.`);
+  if (wrapperChunk && homepageHtml.includes(`/_astro/${wrapperChunk}`)) {
+    failures.push(
+      "dist/index.html should use the lightweight YOU image instead of loading Logo3D.",
+    );
   }
 
   if (wrapperChunk && !shopHtml.includes(`/_astro/${wrapperChunk}`)) {
-    failures.push(`dist/shop/index.html does not load the emitted Logo3D wrapper chunk /_astro/${wrapperChunk}.`);
+    failures.push(
+      `dist/shop/index.html does not load the emitted Logo3D wrapper chunk /_astro/${wrapperChunk}.`,
+    );
   }
 
   pushFailures("logo3d-performance", failures);

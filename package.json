@@ -14,24 +14,27 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.8",
+    "@astrojs/check": "^0.9.10",
     "@astrojs/partytown": "^2.1.7",
-    "@astrojs/react": "^5.0.3",
-    "@astrojs/sitemap": "^3.7.2",
-    "@types/three": "^0.184.0",
-    "astro": "^6.1.7",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "@astrojs/react": "^6.0.4",
+    "@astrojs/sitemap": "^3.7.3",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/three": "^0.185.4",
+    "astro": "^7.2.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "slugify": "^1.6.9",
-    "tailwindcss": "^3.4.19",
-    "three": "^0.184.0"
+    "tailwindcss": "^4.3.3",
+    "three": "^0.185.1"
   },
   "devDependencies": {
-    "autoprefixer": "^10.5.0",
-    "postcss-nesting": "^13.0.2",
-    "prettier": "^3.8.3",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.26",
+    "postcss-js": "^5.1.0",
+    "postcss-nesting": "^14.0.1",
+    "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=22.12.2"
